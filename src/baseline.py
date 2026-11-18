@@ -29,9 +29,11 @@ Usage:
     py src/baseline.py path/to/imu0/data.csv -o estimated_trajectory.txt
 """
 import argparse
+import io
 import math
 import os
 import sys
+import zipfile
 
 INIT_SECONDS = 0.5          # shuru ka itna time "khada" maanke calibrate karte hain
 ZERO_EPS = 0.0              # failure = saari values exactly 0.0 (organiser script aisa hi karti hai)
@@ -92,21 +94,49 @@ def q_align_to_up(f):
 # ---------------------------------------------------------------------------
 # CSV padhna (streaming)
 # ---------------------------------------------------------------------------
-def read_rows(csv_path, stats):
-    """Yield (t_ns, wx, wy, wz, ax, ay, az). '#' wali lines aur header skip."""
-    with open(csv_path, "r", encoding="utf-8-sig") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line[0] == "#":
-                continue
-            p = line.split(",")
+NAN = float("nan")
+
+
+def open_imu_text(path):
+    """
+    (text file object, zip ya None) wapas karta hai.
+    path .zip ho toh uske andar se imu0/data.csv khulti hai (extract kiye bina).
+    """
+    if path.lower().endswith(".zip"):
+        zf = zipfile.ZipFile(path)
+        names = [n for n in zf.namelist() if n.replace("\\", "/").endswith("imu0/data.csv")]
+        if not names:
+            zf.close()
+            sys.exit(f"zip ke andar imu0/data.csv nahi mili: {path}")
+        name = sorted(names, key=len)[0]
+        return io.TextIOWrapper(zf.open(name), encoding="utf-8-sig"), zf
+    return open(path, "r", encoding="utf-8-sig"), None
+
+
+def read_rows(f, stats):
+    """
+    Yield (t_ns, wx, wy, wz, ax, ay, az). '#' wali lines aur header skip.
+    Agar timestamp theek hai par values kharab/khaali/'nan' hain (FAQ: blind window mein sensor values
+    'unusable/invalid' hongi), toh row SKIP NAHI karte -- values NaN bana ke de dete hain, taaki
+    us row ka pose bhi nikle (rule: exactly one pose per IMU frame).
+    """
+    for line in f:
+        line = line.strip()
+        if not line or line[0] == "#":
+            continue
+        p = line.split(",")
+        try:
+            t = int(p[0])
+        except ValueError:
+            stats["skipped_lines"] += 1       # header ya bekaar line (timestamp hi nahi)
+            continue
+        vals = []
+        for k in range(1, 7):
             try:
-                row = (int(p[0]), float(p[1]), float(p[2]), float(p[3]),
-                       float(p[4]), float(p[5]), float(p[6]))
+                vals.append(float(p[k]))
             except (ValueError, IndexError):
-                stats["skipped_lines"] += 1
-                continue
-            yield row
+                vals.append(NAN)
+        yield (t, vals[0], vals[1], vals[2], vals[3], vals[4], vals[5])
 
 
 def resolve_imu_csv(path):
@@ -148,14 +178,17 @@ def estimate(rows, out, stats):
     if len(init) < 5:
         sys.exit("Bahut kam rows hain, calibrate nahi ho sakta.")
 
-    n = float(len(init))
-    gb = [sum(r[1 + k] for r in init) / n for k in range(3)]     # gyro bias
-    fm = [sum(r[4 + k] for r in init) / n for k in range(3)]     # accel mean (khade drone par)
+    good = [r for r in init if math.isfinite(r[1] + r[2] + r[3] + r[4] + r[5] + r[6])]
+    if len(good) < 5:
+        sys.exit("Shuru ki rows mein valid IMU data hi nahi hai, calibrate nahi ho sakta.")
+    n = float(len(good))
+    gb = [sum(r[1 + k] for r in good) / n for k in range(3)]     # gyro bias
+    fm = [sum(r[4 + k] for r in good) / n for k in range(3)]     # accel mean (khade drone par)
     g_est = math.sqrt(fm[0] ** 2 + fm[1] ** 2 + fm[2] ** 2)      # gravity magnitude (self-calibrated)
 
     # "khada tha ya nahi" ka sanity check (sirf warning, kaam rukta nahi)
-    gstd = max(math.sqrt(sum((r[1 + k] - gb[k]) ** 2 for r in init) / n) for k in range(3))
-    astd = max(math.sqrt(sum((r[4 + k] - fm[k]) ** 2 for r in init) / n) for k in range(3))
+    gstd = max(math.sqrt(sum((r[1 + k] - gb[k]) ** 2 for r in good) / n) for k in range(3))
+    astd = max(math.sqrt(sum((r[4 + k] - fm[k]) ** 2 for r in good) / n) for k in range(3))
     stats["init_gyro_bias"] = gb
     stats["init_g"] = g_est
     stats["init_gyro_std"] = gstd
@@ -195,7 +228,9 @@ def estimate(rows, out, stats):
             stats["rows_out"] += 1
             continue
 
-        dead = (abs(gx) <= ZERO_EPS and abs(gy) <= ZERO_EPS and abs(gz) <= ZERO_EPS and
+        # IMU "dead" = values kharab (NaN/inf/khaali) YA saari 6 values exactly 0
+        dead = (not math.isfinite(gx + gy + gz + ax + ay + az)) or (
+                abs(gx) <= ZERO_EPS and abs(gy) <= ZERO_EPS and abs(gz) <= ZERO_EPS and
                 abs(ax) <= ZERO_EPS and abs(ay) <= ZERO_EPS and abs(az) <= ZERO_EPS)
 
         if dead:
@@ -240,15 +275,21 @@ def run(imu_path, out_path):
     csv_path = resolve_imu_csv(imu_path)
     out_dir = os.path.dirname(os.path.abspath(out_path))
     os.makedirs(out_dir, exist_ok=True)
-    with open(out_path, "w", newline="\n") as out:
-        out.write("# timestamp tx ty tz qx qy qz qw\n")
-        estimate(read_rows(csv_path, stats), out, stats)
+    f, zf = open_imu_text(csv_path)
+    try:
+        with open(out_path, "w", newline="\n") as out:
+            out.write("# timestamp tx ty tz qx qy qz qw\n")
+            estimate(read_rows(f, stats), out, stats)
+    finally:
+        f.close()
+        if zf is not None:
+            zf.close()
     return stats
 
 
 def main():
     ap = argparse.ArgumentParser(description="IMU dead-reckoning baseline (Track 3)")
-    ap.add_argument("input", help="imu0/data.csv ya wo folder jisme imu0/data.csv hai")
+    ap.add_argument("input", help="imu0/data.csv, ya folder jisme imu0/data.csv hai, ya .zip")
     ap.add_argument("-o", "--output", default="estimated_trajectory.txt")
     args = ap.parse_args()
 
