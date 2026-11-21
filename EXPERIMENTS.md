@@ -1,9 +1,11 @@
 # EXPERIMENTS.md — PathFinder
 
 ## 1. Scope and data availability
-This document records **actual measurements** obtained in the current development environment using the repository's synthetic/demo workflows. **Real EuRoC/TUM-VI dataset validation is pending** because those datasets are not bundled in this workspace; Tier 1/2/3 scripts and the main pipeline support them, but results on real recordings must be produced and reported separately by the team (see `TEAM_FINAL_TASKS.md`).
+This document records **actual measurements** obtained in the current development environment using both the repository's synthetic/demo workflows and a real TUM-VI recording. The real-data protocol, provenance, hashes and detailed tables are in [`REAL_DATA_VALIDATION.md`](REAL_DATA_VALIDATION.md); results are summarized in Section 3 below.
 
-**Environment (measured runs):** Windows, Python 3.14.10, NumPy 2.5.5, SciPy 1.18.1, Pandas 3.1.1, Matplotlib 3.11.2 (for plots). Single-process, offline execution.
+For the real run, only IMU and ground-truth CSVs were extracted from the official TUM-VI archive. Ground truth was used exclusively by `evaluation.py`; `run_pipeline()` received IMU data only. No GPS, camera images, external positioning, or future ground truth was used in estimation.
+
+**Environment (measured runs):** Windows, Python 3.14.6, NumPy 2.5.1, Pandas 3.0.3. Single-process, offline execution. Plotting/evo are optional and were not required to produce the metrics below.
 
 ## 2. Reproducible demonstration (synthetic)
 
@@ -34,7 +36,54 @@ Ground truth: `outputs/demo/clean_data/mav0/groundtruth_tum.txt`. Metrics from `
 
 **Notes:** absolute position/yaw are weakly observable in IMU-only integration; ATE is reported with rigid alignment (no scale). The degraded run demonstrates correct terminal-failure detection and continued 5 s prediction coverage; blind-window error depends strongly on pre-failure state quality and motion during failure.
 
-## 3. Tier evaluation workflows (synthetic/demo)
+## 3. Real-dataset validation (TUM-VI `room4`)
+
+Official source: `https://cvg.cit.tum.de/tumvi/exported/euroc/512_16/dataset-room4_512_16.tar`. The helper `scripts/fetch_tumvi_subset.py` extracted only `mav0/imu0/data.csv` (2,232,296 bytes) and `mav0/mocap0/data.csv` (1,481,244 bytes). SHA-256 hashes and exact commands are recorded in `REAL_DATA_VALIDATION.md` and in `outputs/real/tumvi_room4/real_validation_summary.json`.
+
+Reproduce:
+
+```bash
+python scripts/fetch_tumvi_subset.py --sequence room4 \
+  --tar-cache "$TEMP/dataset-room4_512_16.tar" \
+  --out-dir data/real/tumvi_room4
+
+python scripts/validate_real_sequence.py \
+  --dataset data/real/tumvi_room4 \
+  --sequence tumvi_room4 \
+  --source-url "https://cvg.cit.tum.de/tumvi/exported/euroc/512_16/dataset-room4_512_16.tar" \
+  --out-dir outputs/real/tumvi_room4
+```
+
+### 3.1 Full recording (111 s, 200 Hz)
+
+| Case | IMU in / out | Wall (s) | Peak MB | Failure / 5 s prediction | Matched poses | ATE RMSE (m) | RPE δ1 (m) | Orient. mean (°) | Blind-window RMSE (m) |
+|---|---:|---:|---:|:---:|---:|---:|---:|---:|---:|
+| clean | 22212 / 22212 | 39.96 | 9.43 | no / no | 21737 | 98.46 | 0.0248 | 101.1 | 205.20* |
+| degraded | 21607 / 21612 | 37.87 | 8.99 | yes / yes (5 appended) | 21145 | 97.38 | 0.0261 | 89.6 | 204.36† |
+| tier3 dropouts | 21273 / 21273 | 37.22 | 8.85 | no / no | 20833 | 115.08 | 0.0302 | 144.7 | 234.97* |
+
+\*Heuristic last-5-s window because no terminal failure was detected.  
+†998 poses after the detected failure time.
+
+Degradation stats (`SEED=42`): 997 failure frames (5 s), 631 dropped samples, 22 spikes, 242 stuck samples. The column-order audit confirmed 100% of degraded timestamps existed in the clean recording, initial accelerometer norm was 10.46 m/s² in both files, and initial gyroscope norm was 0.36 rad/s, so no accel/gyro swap occurred.
+
+### 3.2 First 30 s (`--duration-s 30`)
+
+| Case | IMU in / out | Wall (s) | Peak MB | Failure / 5 s prediction | Matched poses | ATE RMSE (m) | RPE δ1 (m) | Orient. mean (°) | Blind-window RMSE (m) |
+|---|---:|---:|---:|:---:|---:|---:|---:|---:|---:|
+| clean | 5982 / 5982 | 18.86 | 2.65 | no / no | 5978 | 13.37 | 0.0093 | 82.2 | 23.10* |
+| degraded | 5885 / 5890 | 11.34 | 2.45 | yes / yes (5 appended) | 5886 | 15.54 | 0.0116 | 107.0 | 26.54† |
+| tier3 dropouts | 5751 / 5751 | 10.76 | 2.39 | no / no | 5747 | 13.68 | 0.0101 | 76.7 | 23.39* |
+
+\*Heuristic last-5-s window; †1008 poses after the detected failure time.
+
+### 3.3 Findings
+- Local consistency is better than absolute consistency: RPE δ1 is 0.009–0.012 m on the 30 s window, while ATE grows to 13–16 m over 30 s and ~98–115 m over the full recording. This is expected for pure IMU integration with no aiding sensor.
+- Orientation error remains large (77–145°). It is reported as measured, not claimed as solved; it is concrete input to the reserved orientation/frame review in `TEAM_FINAL_TASKS.md`.
+- The terminal-failure detector fires on the real degraded sequence and appends the requested 5 s of poses, but prediction accuracy is limited by drift accumulated before failure.
+- No process RSS or target-hardware profiling was performed, so RAM target compliance is not claimed.
+
+## 4. Tier evaluation workflows (synthetic/demo)
 
 All tiers executed via provided scripts with actual outputs in `outputs/tier1..3`.
 
@@ -57,27 +106,27 @@ All tiers executed via provided scripts with actual outputs in `outputs/tier1..3
 - **Metrics:** ATE RMSE 4.686 m (overall), pre-failure 4.708 m, post-failure/blind (heuristic window) 4.571 m, RPE δ1 RMSE 0.01195 m.
 - **Artifacts:** `outputs/tier3/tier3_summary.{json,csv}`, generated dropout IMU, plots.
 
-## 4. Automated tests (actual execution)
+## 5. Automated tests (actual execution)
 Command: `py -3 -m unittest discover -s tests -v`  
-**Result:** 14 tests, **OK** (0 failures, 0 errors). Coverage includes IMU loading/timestamps/malformed values/TUM-VI layout handling, quaternion normalization/integration, gravity alignment/compensation, trajectory integration, preprocessing bias/gravity estimation and spike/gap handling, failure detection states, 5 s dead-reckoning prediction, ATE evaluation sanity, and end-to-end pipeline output/metadata/failure+prediction behavior.
+**Result:** 17 tests, **OK** (0 failures, 0 errors). Coverage includes IMU loading/timestamps/malformed values/TUM-VI layout handling, quaternion normalization/integration, gravity alignment/compensation, trajectory integration, preprocessing bias/gravity estimation and spike/gap handling, failure detection states, 5 s dead-reckoning prediction, ATE evaluation sanity, end-to-end pipeline output/metadata/failure+prediction behavior, plus the new tar-subset extractor, recording cropper, degradation/dropout preparation and column-order audit.
 
-## 5. Resource-constraint assessment (actual vs targets)
+## 6. Resource-constraint assessment (actual vs targets)
 
 | Constraint (challenge target) | Measured/observed | Status |
 |---|---|---|
-| Peak RAM <= 8 MB | ~2.5–3.0 MB peak **Python allocations** via `tracemalloc` on demo/tier runs | **Not claimed compliant** (process RSS/total footprint not measured; `tracemalloc` under-reports non-Python/native allocations) |
-| <= 20 ms per 1 s IMU, single CPU thread | ~280–480 ms per 1 s IMU in demo runs (Python/NumPy modular pipeline) | **Not met** in current implementation/environment |
-| Offline execution | Yes (no network/external APIs) | Met by design in measured runs |
+| Peak RAM <= 8 MB | ~2.5–3.0 MB Python allocations on demo/tier runs; 8.85–9.43 MB on the full real recording (`tracemalloc`) | **Not claimed compliant**: exceeds 8 MB on the long real run, and process RSS/native allocations were not measured |
+| <= 20 ms per 1 s IMU, single CPU thread | ~280–480 ms per 1 s IMU in demo runs; ~340–630 ms per 1 s IMU on real TUM-VI runs | **Not met** in current implementation/environment |
+| Offline execution | Yes (no network/external APIs during estimation) | Met by design in measured runs; the dataset fetch is a separate preparation step |
 
 Bottlenecks are primarily Python-level per-sample overhead in the modular pipeline; the preserved `baseline.py` demonstrates a streaming/pure-Python approach that may be more memory-frugal in some cases but would require further engineering/measurement to meet targets.
 
-## 6. Known limitations observed
+## 7. Known limitations observed
 - IMU-only drift and yaw unobservability lead to large absolute errors without aiding; results depend on alignment and motion profile.
 - Throughput is far from the 20 ms/s target in this environment.
-- All reported accuracy numbers above are on **synthetic** data; performance on real EuRoC/TUM-VI sequences under the official degraded protocol must be measured independently.
-- Orientation error metrics in these synthetic comparisons are high in absolute terms (sensitive to alignment/frame conventions and drift); teammate review (Team Member 2) is required.
+- Demo/tier accuracy numbers are synthetic; real validation currently covers one TUM-VI `room4` sequence, not the full set of EuRoC/TUM-VI sequences.
+- Orientation error metrics are high in absolute terms on both synthetic and real data (sensitive to alignment/frame conventions and drift); teammate review (Team Member 2) is required.
 
-## 7. Pending real-dataset validation
-- Run and record Tier 1/2/3 on actual EuRoC and TUM-VI recordings.
+## 8. Remaining verification
+- Run and record Tier 1/2/3 on at least two real EuRoC sequences and additional TUM-VI sequences.
 - Capture process-level memory/runtime benchmarks on target hardware/settings.
 - Re-tune preprocessing/correction/orientation gains for real sensor noise characteristics.

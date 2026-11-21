@@ -3,6 +3,8 @@
 **Project:** PathFinder – IMU Trajectory Estimation Under Sensor Degradation  
 **Status:** Core engineering implementation and synthetic/demo validation completed by lead engineer. The tasks below are **reserved for teammates** and are **not claimed as completed**.
 
+**Related preliminary evidence (not a substitute for the reserved work):** real TUM-VI `room4` validation has been added by a collaborator with reproducible scripts, input hashes, consolidated metric summaries in `evidence/real/tumvi_room4/`, and a written report in [`REAL_DATA_VALIDATION.md`](REAL_DATA_VALIDATION.md). Full trajectories and plots are generated locally under gitignored `outputs/real/`. This provides partial evidence for Team Member 3's scope; independent EuRoC runs and teammate review remain required.
+
 Each team member must perform independent verification/experimentation, document observations, and provide concrete evidence (commands run, logs/plots/CSVs, dataset identifiers, and a short technical note on findings and discrepancies).
 
 ---
