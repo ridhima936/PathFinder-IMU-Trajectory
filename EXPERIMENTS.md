@@ -54,13 +54,15 @@ python scripts/validate_real_sequence.py \
   --out-dir outputs/real/tumvi_room4
 ```
 
+The degraded recording contains the terminal 5 s failure window; those samples are propagated by the dead-reckoning branch. From detected failure onset (`1520531230.579905567`) to the final emitted pose (`1520531235.580477567`) the horizon is 5.0006 s. Only 5 residual samples were appended past the end of the input because the input's dead samples already covered ~4.975 s.
+
 ### 3.1 Full recording (111 s, 200 Hz)
 
 | Case | IMU in / out | Wall (s) | Peak MB | Failure / 5 s prediction | Matched poses | ATE RMSE (m) | RPE δ1 (m) | Orient. mean (°) | Blind-window RMSE (m) |
 |---|---:|---:|---:|:---:|---:|---:|---:|---:|---:|
-| clean | 22212 / 22212 | 39.96 | 9.43 | no / no | 21737 | 98.46 | 0.0248 | 101.1 | 205.20* |
-| degraded | 21607 / 21612 | 37.87 | 8.99 | yes / yes (5 appended) | 21145 | 97.38 | 0.0261 | 89.6 | 204.36† |
-| tier3 dropouts | 21273 / 21273 | 37.22 | 8.85 | no / no | 20833 | 115.08 | 0.0302 | 144.7 | 234.97* |
+| clean | 22212 / 22212 | 41.22 | 9.43 | no / no | 21737 | 98.46 | 0.0248 | 101.1 | 205.20* |
+| degraded | 21607 / 21612 | 38.82 | 8.99 | yes / yes (5 residual appended) | 21145 | 97.38 | 0.0261 | 89.6 | 204.36† |
+| tier3 dropouts | 21273 / 21273 | 37.84 | 8.85 | no / no | 20833 | 115.08 | 0.0302 | 144.7 | 234.97* |
 
 \*Heuristic last-5-s window because no terminal failure was detected.  
 †998 poses after the detected failure time.
@@ -72,7 +74,7 @@ Degradation stats (`SEED=42`): 997 failure frames (5 s), 631 dropped samples, 22
 | Case | IMU in / out | Wall (s) | Peak MB | Failure / 5 s prediction | Matched poses | ATE RMSE (m) | RPE δ1 (m) | Orient. mean (°) | Blind-window RMSE (m) |
 |---|---:|---:|---:|:---:|---:|---:|---:|---:|---:|
 | clean | 5982 / 5982 | 18.86 | 2.65 | no / no | 5978 | 13.37 | 0.0093 | 82.2 | 23.10* |
-| degraded | 5885 / 5890 | 11.34 | 2.45 | yes / yes (5 appended) | 5886 | 15.54 | 0.0116 | 107.0 | 26.54† |
+| degraded | 5885 / 5890 | 11.34 | 2.45 | yes / yes (5 residual appended) | 5886 | 15.54 | 0.0116 | 107.0 | 26.54† |
 | tier3 dropouts | 5751 / 5751 | 10.76 | 2.39 | no / no | 5747 | 13.68 | 0.0101 | 76.7 | 23.39* |
 
 \*Heuristic last-5-s window; †1008 poses after the detected failure time.
@@ -80,8 +82,19 @@ Degradation stats (`SEED=42`): 997 failure frames (5 s), 631 dropped samples, 22
 ### 3.3 Findings
 - Local consistency is better than absolute consistency: RPE δ1 is 0.009–0.012 m on the 30 s window, while ATE grows to 13–16 m over 30 s and ~98–115 m over the full recording. This is expected for pure IMU integration with no aiding sensor.
 - Orientation error remains large (77–145°). It is reported as measured, not claimed as solved; it is concrete input to the reserved orientation/frame review in `TEAM_FINAL_TASKS.md`.
-- The terminal-failure detector fires on the real degraded sequence and appends the requested 5 s of poses, but prediction accuracy is limited by drift accumulated before failure.
-- No process RSS or target-hardware profiling was performed, so RAM target compliance is not claimed.
+- The terminal-failure detector fires on the real degraded sequence; the dead-reckoning branch covers the 5 s window from failure onset, with 5 residual samples appended to complete the horizon. Prediction accuracy is limited by drift accumulated before failure.
+- The ~98 m ATE was investigated rather than re-scored: the same rigid, scale-fixed alignment gives a 68.70 m ground-truth path length but a 362.83 m estimated path length before alignment, and the end error is 225.90 m. Local RPE δ1 remains 0.0018–0.0336 m per window, so the ATE is cumulative integration drift, not an association/RPE artifact.
+
+### 3.4 Runtime and memory: Python allocations vs process RSS
+`metadata.json` reports `tracemalloc` peak, which covers Python heap allocations inside `run_pipeline()` only. Peak process RSS was sampled every 20 ms with `Get-Process.PeakWorkingSet64` around isolated runs; it includes the interpreter, NumPy/Pandas and native allocations.
+
+| Case | Pipeline processing (s) | Wrapper wall (s) | Peak `tracemalloc` (MB) | Peak process RSS (MB) |
+|---|---:|---:|---:|---:|
+| clean | 43.71 | 45.46 | 9.43 | 104.97 |
+| degraded | 40.87 | 43.21 | 9.13 | 106.18 |
+| tier3 dropouts | 40.70 | 42.85 | 9.00 | 104.43 |
+
+Neither memory figure meets the 8 MB target; `tracemalloc` understates total process memory by roughly 11x.
 
 ## 4. Tier evaluation workflows (synthetic/demo)
 
@@ -114,7 +127,7 @@ Command: `py -3 -m unittest discover -s tests -v`
 
 | Constraint (challenge target) | Measured/observed | Status |
 |---|---|---|
-| Peak RAM <= 8 MB | ~2.5–3.0 MB Python allocations on demo/tier runs; 8.85–9.43 MB on the full real recording (`tracemalloc`) | **Not claimed compliant**: exceeds 8 MB on the long real run, and process RSS/native allocations were not measured |
+| Peak RAM <= 8 MB | ~2.5–3.0 MB Python allocations on demo/tier runs; 9.00–9.43 MB `tracemalloc` and 104.43–106.18 MB process RSS on real TUM-VI runs | **Not met**: `tracemalloc` exceeds 8 MB on the long real run and total process RSS is ~11x higher |
 | <= 20 ms per 1 s IMU, single CPU thread | ~280–480 ms per 1 s IMU in demo runs; ~340–630 ms per 1 s IMU on real TUM-VI runs | **Not met** in current implementation/environment |
 | Offline execution | Yes (no network/external APIs during estimation) | Met by design in measured runs; the dataset fetch is a separate preparation step |
 

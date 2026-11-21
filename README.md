@@ -136,14 +136,14 @@ Measurements below include **synthetic/demo runs** and a **real TUM-VI `room4` v
 | Case | Samples (in/out) | Time (s) | Peak mem MB (tracemalloc) | Failure detected | 5 s prediction | ATE RMSE (m, aligned) | Blind/post-failure RMSE (m) |
 |---|---:|---:|---:|:---:|:---:|---:|---:|
 | Clean IMU | 5982 / 5982 | 18.86 | 2.65 | No | No | 13.37 | 23.10* |
-| Degraded + terminal failure | 5885 / 5890 | 11.34 | 2.45 | Yes | Yes (5 appended) | 15.54 | 26.54 |
+| Degraded + terminal failure | 5885 / 5890 | 11.34 | 2.45 | Yes | Yes (5 residual appended) | 15.54 | 26.54 |
 | Tier 3 dropout resilience | 5751 / 5751 | 10.76 | 2.39 | No | No | 13.68 | 23.39* |
 
 Full-recording results (111 s) are also recorded: ATE RMSE 98.46 m (clean), 97.38 m (degraded) and 115.08 m (dropouts); peak `tracemalloc` 8.85–9.43 MB.
 
 \*Heuristic blind window in no-failure cases. Absolute IMU-only errors depend on observability, alignment, and motion; metrics are reported as measured.
 
-**Resource targets:** measured throughput is ~280–480 ms per 1 s IMU on demo runs and ~340–630 ms per 1 s IMU on real runs (above the 20 ms target). Peak `tracemalloc` memory is ~2.5–3.0 MB on demo runs but 8.85–9.43 MB on the full real recording; process RSS was not measured. Compliance with 8 MB peak RAM / 20 ms per 1 s IMU is **not claimed**.
+**Resource targets:** measured throughput is ~280–480 ms per 1 s IMU on demo runs and ~340–630 ms per 1 s IMU on real runs (above the 20 ms target). Peak `tracemalloc` memory is ~2.5–3.0 MB on demo runs and 9.00–9.43 MB on real runs; separately sampled peak process RSS is 104.43–106.18 MB. `tracemalloc` counts Python allocations only, while RSS includes the interpreter and native libraries. Compliance with 8 MB peak RAM / 20 ms per 1 s IMU is **not met**.
 
 ## 12. Known limitations
 - IMU-only integration is drift-prone; absolute position and yaw are not fully observable without aiding sensors.
