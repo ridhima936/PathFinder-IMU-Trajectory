@@ -26,10 +26,11 @@ See [`ALGORITHM_EXPLANATION.md`](ALGORITHM_EXPLANATION.md) for sensor models, qu
 ```
 PathFinder-IMU-Trajectory/
 ├── src/                    # core modules and CLI (main.py), preserved baseline/utilities
-├── scripts/                # degradation prep, tier1/2/3 evaluation, demo
+├── scripts/                # degradation prep, tier1/2/3 evaluation, demo, dataset/evo helpers
 ├── tests/                  # unittest suite (synthetic/controlled)
-├── data/{sample,processed}/
-├── outputs/                # generated trajectories, metadata, metrics, plots
+├── data/{sample,processed,external}/  # local datasets (gitignored)
+├── outputs/                # generated trajectories, metadata, metrics, plots (gitignored)
+├── results/                # evaluation/submission-ready summaries and artifacts
 ├── docs/
 ├── README.md
 ├── ARCHITECTURE.md
@@ -40,6 +41,8 @@ PathFinder-IMU-Trajectory/
 ├── requirements.txt
 └── .gitignore
 ```
+
+**Submission bundle (per hackathon guidance):** include at minimum `estimated_trajectory.txt`, `metadata.json`, `src/` (with `main.py` and `src/README.md`), and project `README.md`; adapt to the official evaluator’s exact naming/format requirements.
 
 ## 6. Installation
 **Requirements:** Python 3.10+ recommended (tested with Python 3.14), Windows/Linux/macOS.
@@ -61,6 +64,16 @@ Provide a dataset folder containing `imu0/data.csv` (EuRoC format) or pass the C
 
 ### TUM-VI
 Supported via TUM-VI-compatible/EuRoC-style IMU layouts and adapters in `src/imu_reader.py` (e.g., dataset folders containing `mav0/imu0/data.csv` or other common IMU text locations resolved automatically). Use `--format tumvi` or `--format auto`.
+
+### Download helper (public datasets)
+```bash
+# List known sources and manual instructions
+python scripts/download_datasets.py --list
+
+# Attempt download (may be large; network/mirror dependent)
+python scripts/download_datasets.py --euroc MH_01_easy --extract
+```
+If automatic download fails, follow the official manual instructions printed by the script. Store datasets under `data/external/` (gitignored) or outside the repo. **Do not commit datasets.**
 
 ### Synthetic data (no external dataset required)
 ```bash
@@ -104,6 +117,14 @@ python scripts/evaluate_tier3.py --input <clean_dataset> --gt <groundtruth> --ou
 ```
 Each tier produces `estimated_trajectory.txt`, `metadata.json`, summary JSON/CSV, and plots when `matplotlib` is available.
 
+### Optional: evo ecosystem
+If `evo` is installed, you can compare TUM trajectories with:
+```bash
+python scripts/evo_evaluate.py <groundtruth.tum> <estimated_trajectory.txt> --align --rpe
+# or directly:
+evo_ape tum <groundtruth.tum> <estimated_trajectory.txt> -va --align
+```
+
 ### Reproducible demo
 ```bash
 python scripts/run_demo.py
@@ -115,13 +136,13 @@ Measurements below are from **synthetic/demo runs** in the development environme
 
 | Case | Samples (in/out) | Time (s) | Peak mem MB (tracemalloc) | Failure detected | 5 s prediction | ATE RMSE (m, aligned) | Blind/post-failure RMSE (m) |
 |---|---:|---:|---:|:---:|:---:|---:|---:|
-| Clean synthetic (30 s, 200 Hz) | 6001 / 6001 | 14.389 | 3.042 | No | No | 4.679 | 4.558* |
-| Degraded + terminal failure | 5914 / 5919 | 8.448 | 2.487 | Yes | Yes (5 appended) | 5.130 | 2.224 |
+| Clean synthetic (30 s, 200 Hz) | 6001 / 6001 | 10.120 | 3.030 | No | No | 4.679 | 4.558* |
+| Degraded + terminal failure | 5914 / 5919 | 8.542 | 2.488 | Yes | Yes (5 appended) | 5.130 | 2.224 |
 | Tier 3 dropout resilience (289 dropped / 6001) | 5712 / 5712 | 17.348 | 2.547 | No | No | 4.686 | 4.571* |
 
 \*Heuristic blind window in no-failure cases; see `EXPERIMENTS.md` for context. Absolute IMU-only errors depend on observability, alignment, and motion; metrics are reported as measured.
 
-**Resource targets:** measured throughput is ~280–480 ms per 1 s IMU (above 20 ms target). Peak memory reported via `tracemalloc` (~2.5–3.0 MB) does not capture full process RSS; compliance with 8 MB peak RAM / 20 ms per 1 s IMU is **not claimed** without target-environment profiling.
+**Resource targets:** measured throughput is ~280–480 ms per 1 s IMU (above 20 ms target). Fresh synthetic degraded demo (this environment): 8.542 s for 30 s IMU, `tracemalloc` peak 2.488 MB, **peak process RSS 41.55 MB** (`windows_psapi`). Compliance with 8 MB peak RAM / 20 ms per 1 s IMU is **not claimed**.
 
 ## 12. Known limitations
 - IMU-only integration is drift-prone; absolute position and yaw are not fully observable without aiding sensors.

@@ -29,7 +29,7 @@ if _SRC_DIR not in sys.path:
 from dead_reckoning import DeadReckoningConfig, MotionHistory, predict_future_trajectory
 from failure_detection import FailureConfig, FailureDetector, FailureState
 from imu_reader import read_imu, validate_imu_data
-from orientation import OrientationConfig, quat_to_tum
+from orientation import OrientationConfig, quat_to_tum, rotate_vector, q_from_rotvec, q_multiply, q_normalize
 from preprocessing import PreprocessConfig, preprocess_imu
 from sensor_correction import SensorCorrectionConfig, SensorCorrector
 from trajectory import TrajectoryConfig, TrajectoryEstimator
@@ -37,6 +37,61 @@ from trajectory import TrajectoryConfig, TrajectoryEstimator
 
 def _ns_to_tum_ts(t_ns: int) -> str:
     return f"{int(t_ns) // 1_000_000_000}.{int(t_ns) % 1_000_000_000:09d}"
+
+
+def _get_process_memory_info():
+    """Best-effort process memory info. Peak RSS via Windows GetProcessMemoryInfo when available."""
+    info = {"rss_bytes": None, "peak_rss_bytes": None, "source": None}
+    try:
+        if sys.platform == "win32":
+            import ctypes
+            import ctypes.wintypes
+
+            class PROCESS_MEMORY_COUNTERS(ctypes.Structure):
+                _fields_ = [
+                    ("cb", ctypes.wintypes.DWORD),
+                    ("PageFaultCount", ctypes.wintypes.DWORD),
+                    ("PeakWorkingSetSize", ctypes.c_size_t),
+                    ("WorkingSetSize", ctypes.c_size_t),
+                    ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                    ("PagefileUsage", ctypes.c_size_t),
+                    ("PeakPagefileUsage", ctypes.c_size_t),
+                ]
+
+            psapi = ctypes.WinDLL("psapi", use_last_error=True)
+            kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+            GetCurrentProcess = kernel32.GetCurrentProcess
+            GetCurrentProcess.restype = ctypes.wintypes.HANDLE
+            GetProcessMemoryInfo = psapi.GetProcessMemoryInfo
+            GetProcessMemoryInfo.argtypes = [ctypes.wintypes.HANDLE, ctypes.POINTER(PROCESS_MEMORY_COUNTERS), ctypes.wintypes.DWORD]
+            GetProcessMemoryInfo.restype = ctypes.wintypes.BOOL
+            c = PROCESS_MEMORY_COUNTERS()
+            c.cb = ctypes.sizeof(c)
+            h = GetCurrentProcess()
+            if GetProcessMemoryInfo(h, ctypes.byref(c), c.cb):
+                info["rss_bytes"] = int(c.WorkingSetSize)
+                info["peak_rss_bytes"] = int(c.PeakWorkingSetSize)
+                info["pagefile_bytes"] = int(c.PagefileUsage)
+                info["peak_pagefile_bytes"] = int(c.PeakPagefileUsage)
+                info["source"] = "windows_psapi"
+                return info
+        else:
+            import resource
+
+            rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+            # Linux: KB, macOS: bytes
+            if sys.platform == "darwin":
+                info["peak_rss_bytes"] = int(rss)
+            else:
+                info["peak_rss_bytes"] = int(rss) * 1024
+            info["source"] = "resource_ru_maxrss"
+            return info
+    except Exception:
+        pass
+    return info
 
 
 def _write_tum_pose_line(f, t_ns: int, p: np.ndarray, q_wxyz: np.ndarray):
@@ -150,10 +205,8 @@ def run_pipeline(
                 p = est.p.copy()
                 q = est.q.copy()
                 # update motion history with world-frame linear acceleration estimate
-                # recompute a_world consistent with trajectory step
-                from orientation import rotate_vector as _rv
-                f_world = _rv(q, accel_c)
-                a_world = f_world + np.array([0.0, 0.0, -abs(estimator.config.gravity_magnitude)])
+                f_world = rotate_vector(q, accel_c)
+                a_world = f_world + np.array([0.0, 0.0, -abs(estimator.config.gravity_magnitude)], dtype=np.float64)
                 history.append(t_ns, p, estimator.state.v, a_world, q, gyro_c)
             else:
                 # If complete failure started, propagate via dead-reckoning motion model
@@ -168,8 +221,8 @@ def run_pipeline(
                     k = min(len(history), 20)
                     recent_a = list(history.a_world)[-k:]
                     recent_g = list(history.gyro)[-k:]
-                    a_est = np.median(np.stack(recent_a, axis=0), axis=0) if recent_a else np.zeros(3)
-                    gyro_est = np.median(np.stack(recent_g, axis=0), axis=0) if recent_g else np.zeros(3)
+                    a_est = np.median(np.stack(recent_a, axis=0), axis=0) if recent_a else np.zeros(3, dtype=np.float64)
+                    gyro_est = np.median(np.stack(recent_g, axis=0), axis=0) if recent_g else np.zeros(3, dtype=np.float64)
                     a_est = np.clip(a_est, -dr_cfg.max_accel_m_s2, dr_cfg.max_accel_m_s2)
                     gyro_est = np.clip(gyro_est, -dr_cfg.max_gyro_rad_s, dr_cfg.max_gyro_rad_s)
                     fail_t = detector.failure_start_t_ns if detector.failure_start_t_ns is not None else (history.last()[0] if history.last() else t_ns)
@@ -177,14 +230,12 @@ def run_pipeline(
                     decay = float(np.exp(-t_rel / max(dr_cfg.accel_decay_tau_s, 1e-3))) if dr_cfg.use_constant_acceleration else 0.0
                     v_base = estimator.state.v.copy()
                     if not np.all(np.isfinite(v_base)):
-                        v_base = np.array(list(history.v)[-1], dtype=np.float64) if len(history.v) else np.zeros(3)
+                        v_base = np.array(list(history.v)[-1], dtype=np.float64) if len(history.v) else np.zeros(3, dtype=np.float64)
                     v_step = v_base + a_est * decay * dt
                     speed = float(np.linalg.norm(v_step))
                     if speed > dr_cfg.max_speed_m_s and speed > 1e-9:
                         v_step = v_step * (dr_cfg.max_speed_m_s / speed)
                     p = estimator.state.p + v_step * dt
-                    # orientation propagation
-                    from orientation import q_from_rotvec, q_multiply, q_normalize
                     gyro_step = gyro_est * (decay if dr_cfg.use_constant_acceleration else 0.5)
                     q = q_normalize(q_multiply(estimator.state.q, q_from_rotvec(gyro_step * dt)))
                     estimator.state.p = p.copy()
@@ -193,7 +244,6 @@ def run_pipeline(
                     estimator.state.t_ns = t_ns
                     estimator.state.a_world_prev = a_est * decay
                     estimator.state.gyro_prev = gyro_step.copy()
-                    # do not append dead/failure samples as valid motion history except state progression
                 else:
                     # temporary dropout / unusable sample before confirmed complete failure: propagate conservatively
                     est = estimator.step(t_ns, gyro_c, accel_c, dt, sample_usable=False)
@@ -233,7 +283,8 @@ def run_pipeline(
                                 getattr(estimator.state, "a_world_prev", np.zeros(3)),
                                 estimator.state.q, estimator.state.gyro_prev if estimator.state.gyro_prev is not None else np.zeros(3))
 
-            if remaining > 1e-6:
+            interval_for_pred = float(prediction_interval_s or median_dt or 0.005)
+            if remaining > max(1e-6, 0.5 * interval_for_pred):
                 dr_cfg = DeadReckoningConfig(
                     horizon_s=remaining,
                     interval_s=prediction_interval_s or median_dt,
@@ -262,6 +313,7 @@ def run_pipeline(
     current_mem, peak_mem = tracemalloc.get_traced_memory()
     tracemalloc.stop()
     wall_s = time.perf_counter() - t_wall_start
+    proc_mem = _get_process_memory_info()
 
     metadata = {
         "input_dataset": os.path.abspath(input_path),
@@ -270,8 +322,14 @@ def run_pipeline(
         "num_input_samples": int(n),
         "num_output_samples": int(rows_out),
         "processing_time_s": float(wall_s),
-        "peak_memory_bytes": int(peak_mem),
-        "peak_memory_mb": float(peak_mem) / (1024.0 * 1024.0),
+        "peak_memory_bytes": int(peak_mem),  # backward-compatible alias (Python/tracemalloc)
+        "peak_memory_mb": float(peak_mem) / (1024.0 * 1024.0),  # backward-compatible alias (Python/tracemalloc)
+        "peak_python_memory_bytes": int(peak_mem),
+        "peak_python_memory_mb": float(peak_mem) / (1024.0 * 1024.0),
+        "process_rss_bytes": proc_mem.get("rss_bytes"),
+        "peak_process_rss_bytes": proc_mem.get("peak_rss_bytes"),
+        "peak_process_rss_mb": (float(proc_mem["peak_rss_bytes"]) / (1024.0 * 1024.0)) if proc_mem.get("peak_rss_bytes") else None,
+        "process_memory_source": proc_mem.get("source"),
         "failure_detection": detector.summary(),
         "failure_detected": bool(detector.failure_started),
         "failure_start_t_ns": detector.failure_start_t_ns,
@@ -344,7 +402,9 @@ def main(argv: Optional[List[str]] = None):
     # concise stdout summary
     print(f"input_samples={meta['num_input_samples']} output_samples={meta['num_output_samples']}")
     print(f"failure_detected={meta['failure_detected']} prediction_generated={meta['prediction_generated']} horizon_s={meta['prediction_horizon_s']}")
-    print(f"processing_time_s={meta['processing_time_s']:.6f} peak_memory_mb={meta['peak_memory_mb']:.3f}")
+    rss_mb = meta.get("peak_process_rss_mb")
+    rss_str = f"{rss_mb:.3f}" if isinstance(rss_mb, (int, float)) else "n/a"
+    print(f"processing_time_s={meta['processing_time_s']:.6f} peak_python_memory_mb={meta['peak_memory_mb']:.3f} peak_process_rss_mb={rss_str}")
     print(f"trajectory: {meta['output_path']}")
     print(f"metadata:   {meta['metadata_path']}")
     return 0
