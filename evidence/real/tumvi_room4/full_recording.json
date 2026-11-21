@@ -1,11 +1,11 @@
 {
   "workflow": "real_dataset_validation",
   "source": {
-    "dataset": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\data\\real\\tumvi_room4_verify",
-    "sequence": "tumvi_room4_verify",
+    "dataset": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\data\\real\\tumvi_room4_run2",
+    "sequence": "tumvi_room4_run2",
     "source_url": "https://cvg.cit.tum.de/tumvi/exported/euroc/512_16/dataset-room4_512_16.tar",
-    "imu_csv": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\data\\real\\tumvi_room4_verify\\mav0\\imu0\\data.csv",
-    "ground_truth_csv": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\data\\real\\tumvi_room4_verify\\mav0\\mocap0\\data.csv",
+    "imu_csv": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\data\\real\\tumvi_room4_run2\\mav0\\imu0\\data.csv",
+    "ground_truth_csv": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\data\\real\\tumvi_room4_run2\\mav0\\mocap0\\data.csv",
     "imu_sha256": "4249d4036b3c03c55b709f6f634d975d024999fb017ab3539cfa71580793a3be",
     "ground_truth_sha256": "073a3e957efa8ff638ea41402cac9654b40897631d566a3ffee090208597db2a",
     "ground_truth_usage": "evaluation only; never provided to run_pipeline()"
@@ -26,11 +26,11 @@
   "cases": {
     "clean": {
       "case": "clean",
-      "input": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\data\\real\\tumvi_room4_verify\\mav0\\imu0\\data.csv",
+      "input": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\data\\real\\tumvi_room4_run2\\mav0\\imu0\\data.csv",
       "run": {
         "num_input_samples": 22212,
         "num_output_samples": 22212,
-        "processing_time_s": 41.224401500076056,
+        "processing_time_s": 52.81515799975023,
         "peak_memory_mb": 9.42842960357666,
         "failure_detected": false,
         "failure_start_t_ns": null,
@@ -148,8 +148,8 @@
         "blind_horizon_s": 5.0
       },
       "summary_files": {
-        "json": "outputs/real/tumvi_room4_verify\\clean\\clean_summary.json",
-        "csv": "outputs/real/tumvi_room4_verify\\clean\\clean_summary.csv"
+        "json": "outputs/real/tumvi_room4_run2\\clean\\clean_summary.json",
+        "csv": "outputs/real/tumvi_room4_run2\\clean\\clean_summary.csv"
       },
       "plots": {
         "trajectory_3d": null,
@@ -158,12 +158,12 @@
     },
     "degraded": {
       "case": "degraded",
-      "input": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\real\\tumvi_room4_verify\\degraded_dataset",
+      "input": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\real\\tumvi_room4_run2\\degraded_dataset",
       "run": {
         "num_input_samples": 21607,
         "num_output_samples": 21612,
-        "processing_time_s": 38.817378900013864,
-        "peak_memory_mb": 8.985090255737305,
+        "processing_time_s": 50.19100729981437,
+        "peak_memory_mb": 8.985088348388672,
         "failure_detected": true,
         "failure_start_t_ns": 1520531230579905567,
         "prediction_generated": true,
@@ -280,8 +280,8 @@
         "blind_horizon_s": 5.0
       },
       "summary_files": {
-        "json": "outputs/real/tumvi_room4_verify\\degraded\\degraded_summary.json",
-        "csv": "outputs/real/tumvi_room4_verify\\degraded\\degraded_summary.csv"
+        "json": "outputs/real/tumvi_room4_run2\\degraded\\degraded_summary.json",
+        "csv": "outputs/real/tumvi_room4_run2\\degraded\\degraded_summary.csv"
       },
       "plots": {
         "trajectory_3d": null,
@@ -356,12 +356,12 @@
     },
     "tier3": {
       "case": "tier3",
-      "input": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\real\\tumvi_room4_verify\\dropout_dataset",
+      "input": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\real\\tumvi_room4_run2\\dropout_dataset",
       "run": {
         "num_input_samples": 21273,
         "num_output_samples": 21273,
-        "processing_time_s": 37.83765539992601,
-        "peak_memory_mb": 8.850605010986328,
+        "processing_time_s": 49.70533150015399,
+        "peak_memory_mb": 8.850603103637695,
         "failure_detected": false,
         "failure_start_t_ns": null,
         "prediction_generated": false,
@@ -478,8 +478,8 @@
         "blind_horizon_s": 5.0
       },
       "summary_files": {
-        "json": "outputs/real/tumvi_room4_verify\\tier3\\tier3_summary.json",
-        "csv": "outputs/real/tumvi_room4_verify\\tier3\\tier3_summary.csv"
+        "json": "outputs/real/tumvi_room4_run2\\tier3\\tier3_summary.json",
+        "csv": "outputs/real/tumvi_room4_run2\\tier3\\tier3_summary.csv"
       },
       "plots": {
         "trajectory_3d": null,

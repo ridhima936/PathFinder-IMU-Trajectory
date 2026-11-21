@@ -70,9 +70,9 @@ association. Memory is `tracemalloc` peak (Python allocations only).
 
 | Case | IMU in / out | Wall (s) | Peak MB | Failure / 5 s prediction | Matched poses | ATE RMSE (m) | RPE δ1 (m) | Mean orient. err (°) | Blind-window RMSE (m) |
 |---|---:|---:|---:|:---:|---:|---:|---:|---:|---:|
-| clean | 22212 / 22212 | 41.22 | 9.43 | no / no | 21737 | 98.46 | 0.0248 | 101.1 | 205.20 (heuristic last 5 s) |
-| degraded | 21607 / 21612 | 38.82 | 8.99 | yes / yes (5 residual appended) | 21145 | 97.38 | 0.0261 | 89.6 | 204.36 (998 poses after detected failure) |
-| tier3 dropouts | 21273 / 21273 | 37.84 | 8.85 | no / no | 20833 | 115.08 | 0.0302 | 144.7 | 234.97 (heuristic last 5 s) |
+| clean | 22212 / 22212 | 52.82 | 9.43 | no / no | 21737 | 98.46 | 0.0248 | 101.1 | 205.20 (heuristic last 5 s) |
+| degraded | 21607 / 21612 | 50.19 | 8.99 | yes / yes (5 residual appended) | 21145 | 97.38 | 0.0261 | 89.6 | 204.36 (998 poses after detected failure) |
+| tier3 dropouts | 21273 / 21273 | 49.71 | 8.85 | no / no | 20833 | 115.08 | 0.0302 | 144.7 | 234.97 (heuristic last 5 s) |
 
 Degradation stats (`SEED=42`): 997 failure frames (5 s), 631 dropped samples,
 22 spikes, 242 stuck samples. Failure was detected at
@@ -106,9 +106,12 @@ output directory such as `outputs/real/tumvi_room4_short`.
   and the estimator appends the requested 5 s of poses. Predictive accuracy is
   limited by the drift already accumulated before failure (204 m blind-window
   RMSE on the full recording, 26.5 m on the 30 s window).
-- Throughput is ~0.34–0.63 s of wall time per 1 s of IMU, far from the 20 ms
-  target. Peak `tracemalloc` allocation exceeds 8 MB on the full recording
+- Throughput is 0.446–0.516 s of wall time per 1 s of IMU across the isolated
+  RSS reruns (0.446–0.474 s in the consolidated run), far from the 20 ms target.
+  Peak `tracemalloc` allocation exceeds 8 MB on the full recording
   (8.85–9.43 MB), so neither resource target is claimed as met.
+- Timed `predict_future_trajectory()` on the real degraded input: one call
+  generated the 5 residual poses in 0.002954 s.
 
 ### 4.4 Investigation of the ~98 m ATE (not hidden or re-scored)
 The ~98 m ATE is reproducible and remains in the reported results. A diagnostic
@@ -123,16 +126,27 @@ scale-fixed Umeyama alignment found:
 | Estimated path length before alignment | 362.83 m |
 | Position error at end | 225.90 m |
 
+Additional checks on the same run: 21737 poses associate within 5 ms (median
+|Δt| 0.002084 s, max 0.004918 s), so this is not a timestamp mismatch. The
+accelerometer/gyroscope columns are m/s² and rad/s with initial norms 9.805 and
+0.272, and the estimated gravity is 9.799 m/s², so units and gravity compensation
+are not obviously wrong. The evaluators convert the ground-truth header order
+`qw,qx,qy,qz` into `qx,qy,qz,qw`; the as-used quaternion convention has lower
+orientation error (101.1°) than either conjugate alternative (128.9° / 123.3°).
+The alignment is rigid with scale fixed at 1.000000, so no scale manipulation
+was used.
+
 Error is not constant; it accumulates with mission time under the one global
 alignment (mean error by window: 128.08 m at 0–5 s, 99.20 m at 20–30 s, 41.59 m
 at 30–60 s, then 147.91 m at 90–120 s). Local RPE δ1 stays small
 (0.0018–0.0336 m per window), so the failure is cumulative drift in
-position/velocity/orientation rather than a timestamp-association or RPE
-artifact. The estimated path is 5.3x longer than the recorded path, consistent
-with IMU-only integration error: initial gyro bias estimate was
+position/velocity/orientation rather than a timestamp/unit/quaternion/gravity/
+alignment artifact. The estimated path is 5.3x longer than the recorded path,
+consistent with IMU-only integration error: initial gyro bias estimate was
 `[0.0119, 0.0587, -0.0346] rad/s`, gravity magnitude was estimated as
-9.799 m/s², and mean orientation error was 101.1°. No aiding sensor, scale
-alignment, or ground truth was used to reduce this error.
+9.799 m/s², and mean orientation error was 101.1°. No legitimate fix was found;
+ATE before = after = 98.464 m and RPE δ1 before = after = 0.02478 m. No aiding
+sensor, scale alignment, or ground truth was used to reduce this error.
 
 ### 4.5 Runtime and memory: Python allocations vs total process RSS
 `tracemalloc` (reported in `metadata.json`) counts only Python heap allocations
@@ -142,18 +156,20 @@ it includes the Python interpreter, NumPy/Pandas and native allocations.
 
 | Case | Pipeline processing (s) | Wrapper wall (s) | Peak `tracemalloc` (MB) | Peak process RSS (MB) |
 |---|---:|---:|---:|---:|
-| clean | 43.71 | 45.46 | 9.43 | 104.97 |
-| degraded | 40.87 | 43.21 | 9.13 | 106.18 |
-| tier3 dropouts | 40.70 | 42.85 | 9.00 | 104.43 |
+| clean | 55.68 | 59.11 | 9.43 | 104.93 |
+| degraded | 52.76 | 55.75 | 9.13 | 106.27 |
+| tier3 dropouts | 57.47 | 60.27 | 9.00 | 104.89 |
 
-The 8 MB target is not met under either measure; `tracemalloc` alone understates
-total process memory by roughly 11x. Throughput remains ~340–630 ms per 1 s IMU,
-far above the 20 ms target.
+The RSS rows are isolated reruns; the consolidated validation run reports
+52.82 / 50.19 / 49.71 s pipeline processing. The 8 MB target is not met under
+either measure; `tracemalloc` alone understates total process memory by roughly
+11x. Throughput remains 446–516 ms per 1 s IMU, far above the 20 ms target.
 
-Artifacts: `outputs/real/tumvi_room4/**` and
-`outputs/real/tumvi_room4_short/**`, including per-case `metadata.json`,
-`metrics.json`, trajectory files, plots and the consolidated
-`real_validation_summary.json`.
+Artifacts: `outputs/real/tumvi_room4_run2/**` (re-verification),
+`outputs/real/tumvi_room4/**` and `outputs/real/tumvi_room4_short/**`, including
+per-case `metadata.json`, `metrics.json`, trajectory files, plots and the
+consolidated `real_validation_summary.json`. Machine-readable summaries are
+committed under `evidence/real/tumvi_room4/`.
 
 ## 5. Scope and limitations
 

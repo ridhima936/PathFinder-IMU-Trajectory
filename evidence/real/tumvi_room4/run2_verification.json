@@ -1,0 +1,86 @@
+{
+  "sequence": "TUM-VI room4 (EuroC export 512_16)",
+  "dataset_dir": "data/real/tumvi_room4_run2",
+  "validation_output_dir": "outputs/real/tumvi_room4_run2",
+  "extraction": {
+    "cached_archive_bytes": 1356206080,
+    "imu_csv_bytes": 2232296,
+    "ground_truth_csv_bytes": 1481244,
+    "ground_truth_csv": "mav0/mocap0/data.csv",
+    "camera_frames_kept": false
+  },
+  "cases": {
+    "clean": {
+      "imu_in": 22212,
+      "imu_out": 22212,
+      "processing_time_s": 52.815158,
+      "s_per_imu_s": 0.474,
+      "tracemalloc_peak_mb": 9.43,
+      "matched_poses": 21737,
+      "ate_rmse_m": 98.464,
+      "rpe_delta1_rmse_m": 0.02478,
+      "rpe_delta10_rmse_m": 0.20273
+    },
+    "degraded": {
+      "imu_in": 21607,
+      "imu_out": 21612,
+      "processing_time_s": 50.19,
+      "s_per_imu_s": 0.451,
+      "tracemalloc_peak_mb": 8.99,
+      "matched_poses": 21145,
+      "ate_rmse_m": 97.378,
+      "rpe_delta1_rmse_m": 0.02610,
+      "rpe_delta10_rmse_m": 0.21241,
+      "failure_start_t_ns": 1520531230579905567,
+      "prediction_appended_samples": 5,
+      "covered_from_failure_s": 5.000572
+    },
+    "tier3": {
+      "imu_in": 21273,
+      "imu_out": 21273,
+      "processing_time_s": 49.71,
+      "s_per_imu_s": 0.446,
+      "tracemalloc_peak_mb": 8.85,
+      "matched_poses": 20833,
+      "ate_rmse_m": 115.085,
+      "rpe_delta1_rmse_m": 0.03021,
+      "rpe_delta10_rmse_m": 0.24142
+    }
+  },
+  "isolated_rss_reruns": {
+    "method": "Get-Process.PeakWorkingSet64 sampled every 20 ms; includes interpreter and native allocations",
+    "clean": {"processing_time_s": 55.68, "wall_s": 59.11, "tracemalloc_mb": 9.43, "process_rss_mb": 104.93},
+    "degraded": {"processing_time_s": 52.76, "wall_s": 55.75, "tracemalloc_mb": 9.13, "process_rss_mb": 106.27},
+    "tier3": {"processing_time_s": 57.47, "wall_s": 60.27, "tracemalloc_mb": 9.00, "process_rss_mb": 104.89}
+  },
+  "prediction_generation": {
+    "calls": 1,
+    "generation_s": 0.002954,
+    "predicted_poses": 5,
+    "measurement": "timed main.predict_future_trajectory during degraded run_pipeline"
+  },
+  "accuracy_investigation": {
+    "association_pairs": 21737,
+    "association_abs_dt_median_s": 0.002084,
+    "association_abs_dt_max_s": 0.004918,
+    "association_max_allowed_s": 0.005,
+    "alignment_scale_fixed": 1.0,
+    "gt_path_length_m": 68.70,
+    "estimated_path_length_before_alignment_m": 362.83,
+    "final_position_error_m": 225.90,
+    "accel_norm_first200_mean_m_s2": 9.805,
+    "gyro_norm_first200_mean_rad_s": 0.272,
+    "gravity_estimate_m_s2": 9.799,
+    "orientation_error_mean_deg_as_used": 101.1,
+    "orientation_error_mean_deg_conjugate_est": 128.9,
+    "orientation_error_mean_deg_conjugate_gt": 123.3,
+    "legitimate_fixes_applied": "none",
+    "ate_before_m": 98.464,
+    "ate_after_m": 98.464,
+    "rpe_d1_before_m": 0.02478,
+    "rpe_d1_after_m": 0.02478,
+    "conclusion": "cumulative IMU-only integration drift; no timestamp, unit, quaternion, gravity, or alignment bug found"
+  },
+  "ground_truth_usage": "evaluation only; run_pipeline receives only the IMU CSV and has no ground-truth parameter",
+  "tests": {"command": "py -3 -m unittest discover -s tests -v", "count": 17, "result": "OK", "duration_s": 4.020}
+}
