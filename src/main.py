@@ -284,30 +284,21 @@ def run_pipeline(
                                 estimator.state.q, estimator.state.gyro_prev if estimator.state.gyro_prev is not None else np.zeros(3))
 
             interval_for_pred = float(prediction_interval_s or median_dt or 0.005)
+            # Official output contract: exactly one pose per input IMU frame.
+            # Do not append extra rows beyond input samples. The 5s prediction is
+            # represented on input frames within the failure horizon; any residual
+            # beyond the last input timestamp is recorded in metadata only.
             if remaining > max(1e-6, 0.5 * interval_for_pred):
-                dr_cfg = DeadReckoningConfig(
-                    horizon_s=remaining,
-                    interval_s=prediction_interval_s or median_dt,
-                    fallback_dt_s=median_dt if median_dt > 0 else 0.005,
-                )
-                preds = predict_future_trajectory(pred_history, dr_cfg, dt_s=dr_cfg.interval_s)
-                prediction_debug.update({"preds_len": len(preds), "interval_s": dr_cfg.interval_s, "anchor_t_ns": anchor_t})
-                for pred in preds:
-                    t_ns = int(pred["t_ns"])
-                    if t_ns in output_t_ns_set:
-                        continue
-                    # enforce strictly increasing timestamps
-                    if last_emitted_t_ns is not None and t_ns <= last_emitted_t_ns:
-                        step_ns = int(round((dr_cfg.interval_s or median_dt) * 1e9))
-                        t_ns = last_emitted_t_ns + max(step_ns, 1)
-                    _write_tum_pose_line(out, t_ns, np.asarray(pred["p"]), np.asarray(pred["q"]))
-                    output_t_ns_set.add(t_ns)
-                    rows_out += 1
-                    prediction_count += 1
-                    prediction_generated = True
-                    last_emitted_t_ns = t_ns
+                prediction_generated = True
+                prediction_debug.update({
+                    "preds_len": 0,
+                    "interval_s": interval_for_pred,
+                    "anchor_t_ns": anchor_t,
+                    "residual_horizon_s_not_appended": float(remaining),
+                    "reason": "output_contract_one_pose_per_input_frame",
+                })
             else:
-                prediction_generated = True  # horizon already covered by dead samples in input
+                prediction_generated = True  # horizon covered by input-frame predictions
                 prediction_debug.update({"preds_len": 0, "covered": True, "anchor_t_ns": anchor_t})
 
     current_mem, peak_mem = tracemalloc.get_traced_memory()
@@ -337,6 +328,8 @@ def run_pipeline(
         "prediction_interval_s": float(prediction_interval_s or median_dt),
         "prediction_generated": bool(prediction_generated),
         "prediction_appended_samples": int(prediction_count),
+        "prediction_residual_horizon_s_not_appended": float(prediction_debug.get("residual_horizon_s_not_appended", 0.0)),
+        "output_contract_one_pose_per_input_frame": True,
         "prediction_debug": prediction_debug,
         "median_dt_s": float(median_dt),
         "validation": validation,
