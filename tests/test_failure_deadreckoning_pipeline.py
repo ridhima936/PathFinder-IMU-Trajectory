@@ -86,6 +86,8 @@ class TestFailureDeadReckoningAndPipeline(unittest.TestCase):
             with open(out_meta, "r", encoding="utf-8") as f:
                 m = json.load(f)
             self.assertEqual(m["num_input_samples"], meta["num_input_samples"])
+            self.assertEqual(m["num_output_samples"], m["num_input_samples"], "Official contract: one pose per input IMU frame")
+            self.assertEqual(m["prediction_appended_samples"], 0)
             self.assertTrue(m["failure_detected"])
             self.assertTrue(m["prediction_generated"])
             # output format: comment + one pose per output sample
@@ -94,11 +96,12 @@ class TestFailureDeadReckoningAndPipeline(unittest.TestCase):
             self.assertTrue(lines[0].startswith("#"))
             pose_lines = [ln for ln in lines[1:] if not ln.startswith("#")]
             self.assertEqual(len(pose_lines), m["num_output_samples"])
-            for ln in pose_lines[:10] + pose_lines[-10:]:
+            for ln in pose_lines:
                 parts = ln.split()
                 self.assertEqual(len(parts), 8)
-                # quaternion norm sanity
-                q = np.array([float(parts[4]), float(parts[5]), float(parts[6]), float(parts[7])])
+                vals = [float(x) for x in parts]
+                self.assertTrue(all(np.isfinite(vals)))
+                q = np.array(vals[4:8], dtype=float)
                 self.assertTrue(abs(np.linalg.norm(q) - 1.0) < 1e-3, msg=f"quat norm {np.linalg.norm(q)}")
 
 
