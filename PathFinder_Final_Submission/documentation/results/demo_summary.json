@@ -1,0 +1,260 @@
+{
+  "demo": "PathFinder reproducible demonstration",
+  "inputs": {
+    "clean_imu": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\clean_data\\mav0",
+    "degraded_imu": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\degraded_data\\mav0",
+    "ground_truth": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\clean_data\\mav0\\groundtruth_tum.txt"
+  },
+  "outputs": {
+    "clean_estimated": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\estimated_clean.txt",
+    "degraded_estimated": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\estimated_degraded.txt",
+    "clean_metadata": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\metadata_clean.json",
+    "degraded_metadata": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\metadata_degraded.json"
+  },
+  "runs": {
+    "clean": {
+      "num_input_samples": 6001,
+      "num_output_samples": 6001,
+      "processing_time_s": 15.355082600028254,
+      "peak_memory_mb": 3.014021873474121,
+      "failure_detected": false,
+      "prediction_generated": false
+    },
+    "degraded": {
+      "num_input_samples": 5914,
+      "num_output_samples": 5914,
+      "processing_time_s": 10.35567349998746,
+      "peak_memory_mb": 2.488255500793457,
+      "failure_detected": true,
+      "failure_start_t_ns": 1403636604783555392,
+      "prediction_generated": true,
+      "prediction_appended_samples": 0
+    }
+  },
+  "plots": {
+    "clean_trajectory_3d": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\clean_trajectory_3d.png",
+    "degraded_trajectory_3d": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\degraded_trajectory_3d.png",
+    "clean_position_error": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\clean_position_error.png",
+    "degraded_position_error": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\degraded_position_error.png"
+  },
+  "metrics": {
+    "clean_vs_gt": {
+      "matched_poses": 6001,
+      "estimated_rows": 6001,
+      "groundtruth_rows": 6001,
+      "alignment": {
+        "enabled": true,
+        "R": [
+          [
+            0.37804189966659274,
+            -0.16871570788400175,
+            0.9102853025341424
+          ],
+          [
+            0.8780600160248604,
+            0.376975072294178,
+            -0.2947887432166001
+          ],
+          [
+            -0.2934193762431119,
+            0.9107276238162536,
+            0.29065488962531405
+          ]
+        ],
+        "t": [
+          1.2069134084699578,
+          1.460587526791854,
+          0.07782055140975584
+        ],
+        "scale": 1.0
+      },
+      "overall": {
+        "count": 6001,
+        "ate_rmse_m": 4.678521962469589,
+        "position_rmse_m": 4.678521962469589,
+        "position_mean_m": 4.631159293213371,
+        "position_median_m": 4.781233313452064,
+        "position_max_m": 5.522070873377709,
+        "position_final_m": 5.01675579793499,
+        "orientation_mean_deg": 120.04571780328001,
+        "orientation_median_deg": 118.51531003541531,
+        "orientation_rmse_deg": 124.40525560259175,
+        "orientation_max_deg": 179.99915754991346
+      },
+      "pre_failure": {
+        "count": 5001,
+        "ate_rmse_m": 4.702305086870319,
+        "position_rmse_m": 4.702305086870319,
+        "position_mean_m": 4.646662692918272,
+        "position_median_m": 4.894527254286253,
+        "position_max_m": 5.522070873377709,
+        "position_final_m": 4.738445454512076,
+        "orientation_mean_deg": 113.16241672804345,
+        "orientation_median_deg": 106.49658810668323,
+        "orientation_rmse_deg": 117.21444613245919,
+        "orientation_max_deg": 179.99915754991346
+      },
+      "post_failure": {
+        "count": 1000,
+        "ate_rmse_m": 4.557720676440438,
+        "position_rmse_m": 4.557720676440438,
+        "position_mean_m": 4.553626791289158,
+        "position_median_m": 4.5721928275678065,
+        "position_max_m": 5.01675579793499,
+        "position_final_m": 5.01675579793499,
+        "orientation_mean_deg": 154.46910648053796,
+        "orientation_median_deg": 158.44280087576567,
+        "orientation_rmse_deg": 155.45292296969092,
+        "orientation_max_deg": 179.97060145914756
+      },
+      "blind_window": {
+        "count": 1000,
+        "ate_rmse_m": 4.557720676440438,
+        "position_rmse_m": 4.557720676440438,
+        "position_mean_m": 4.553626791289158,
+        "position_median_m": 4.5721928275678065,
+        "position_max_m": 5.01675579793499,
+        "position_final_m": 5.01675579793499,
+        "orientation_mean_deg": 154.46910648053796,
+        "orientation_median_deg": 158.44280087576567,
+        "orientation_rmse_deg": 155.45292296969092,
+        "orientation_max_deg": 179.97060145914756
+      },
+      "ate": {
+        "rmse": 4.678521962469589,
+        "mean": 4.631159293213371,
+        "median": 4.781233313452064,
+        "std": 0.664026621600164,
+        "max": 5.522070873377709,
+        "final": 5.01675579793499
+      },
+      "rpe_delta1": {
+        "rmse": 0.009416920827735403,
+        "mean": 0.008901806006152955,
+        "median": 0.01016382616689953,
+        "std": 0.0030718476043996704,
+        "max": 0.012904218023766598,
+        "count": 6000
+      },
+      "rpe_delta10": {
+        "rmse": 0.09419507204555236,
+        "mean": 0.08907383141637851,
+        "median": 0.1016496905423095,
+        "std": 0.030635994426056693,
+        "max": 0.12878175663054164,
+        "count": 5991
+      },
+      "failure_time_s_used": 1403636604.7585554,
+      "blind_horizon_s": 5.0
+    },
+    "degraded_vs_gt": {
+      "matched_poses": 5914,
+      "estimated_rows": 5914,
+      "groundtruth_rows": 6001,
+      "alignment": {
+        "enabled": true,
+        "R": [
+          [
+            0.9954548815783758,
+            0.011333669069028695,
+            -0.0945575310972887
+          ],
+          [
+            -0.08218161104947067,
+            0.6039439642888653,
+            -0.7927785761512248
+          ],
+          [
+            0.048122360157150434,
+            0.7969461938829269,
+            0.6021303866343417
+          ]
+        ],
+        "t": [
+          2.5235912588457285,
+          -0.23361857328190405,
+          0.37977689379079094
+        ],
+        "scale": 1.0
+      },
+      "overall": {
+        "count": 5914,
+        "ate_rmse_m": 5.129737997949245,
+        "position_rmse_m": 5.129737997949245,
+        "position_mean_m": 4.76455256456597,
+        "position_median_m": 5.367218753967675,
+        "position_max_m": 7.6983171574543245,
+        "position_final_m": 3.067022863235224,
+        "orientation_mean_deg": 115.11543544596009,
+        "orientation_median_deg": 112.87790497221648,
+        "orientation_rmse_deg": 121.2769174471964,
+        "orientation_max_deg": 179.97126178721282
+      },
+      "pre_failure": {
+        "count": 4911,
+        "ate_rmse_m": 5.538371284421032,
+        "position_rmse_m": 5.538371284421032,
+        "position_mean_m": 5.29211753910798,
+        "position_median_m": 5.645696238997551,
+        "position_max_m": 7.6983171574543245,
+        "position_final_m": 3.1178793255630604,
+        "orientation_mean_deg": 106.9404251178404,
+        "orientation_median_deg": 104.2248007966317,
+        "orientation_rmse_deg": 112.89725674775927,
+        "orientation_max_deg": 179.96698356711704
+      },
+      "post_failure": {
+        "count": 1003,
+        "ate_rmse_m": 2.229238643942028,
+        "position_rmse_m": 2.229238643942028,
+        "position_mean_m": 2.1814303412600817,
+        "position_median_m": 2.0973594860547604,
+        "position_max_m": 3.114325094530618,
+        "position_final_m": 3.067022863235224,
+        "orientation_mean_deg": 155.14282898673343,
+        "orientation_median_deg": 156.61810024398088,
+        "orientation_rmse_deg": 155.93627711538753,
+        "orientation_max_deg": 179.97126178721282
+      },
+      "blind_window": {
+        "count": 1003,
+        "ate_rmse_m": 2.229238643942028,
+        "position_rmse_m": 2.229238643942028,
+        "position_mean_m": 2.1814303412600817,
+        "position_median_m": 2.0973594860547604,
+        "position_max_m": 3.114325094530618,
+        "position_final_m": 3.067022863235224,
+        "orientation_mean_deg": 155.14282898673343,
+        "orientation_median_deg": 156.61810024398088,
+        "orientation_rmse_deg": 155.93627711538753,
+        "orientation_max_deg": 179.97126178721282
+      },
+      "ate": {
+        "rmse": 5.129737997949245,
+        "mean": 4.76455256456597,
+        "median": 5.367218753967675,
+        "std": 1.9008552777873844,
+        "max": 7.6983171574543245,
+        "final": 3.067022863235224
+      },
+      "rpe_delta1": {
+        "rmse": 0.009754932337695555,
+        "mean": 0.009006921553326122,
+        "median": 0.00980377949892704,
+        "std": 0.0037462072880778737,
+        "max": 0.11741756289743245,
+        "count": 5913
+      },
+      "rpe_delta10": {
+        "rmse": 0.09568559992032023,
+        "mean": 0.09006733290925645,
+        "median": 0.09845892072033416,
+        "std": 0.03230494659838887,
+        "max": 0.2053157094021628,
+        "count": 5904
+      },
+      "failure_time_s_used": 1403636604.7585554,
+      "blind_horizon_s": 5.0
+    }
+  }
+}

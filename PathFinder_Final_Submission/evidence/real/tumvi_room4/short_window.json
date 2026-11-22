@@ -1,0 +1,501 @@
+{
+  "workflow": "real_dataset_validation",
+  "source": {
+    "dataset": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\data\\real\\tumvi_room4",
+    "sequence": "tumvi_room4_30s",
+    "source_url": "https://cvg.cit.tum.de/tumvi/exported/euroc/512_16/dataset-room4_512_16.tar",
+    "imu_csv": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\data\\real\\tumvi_room4\\mav0\\imu0\\data.csv",
+    "ground_truth_csv": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\data\\real\\tumvi_room4\\mav0\\mocap0\\data.csv",
+    "imu_sha256": "4249d4036b3c03c55b709f6f634d975d024999fb017ab3539cfa71580793a3be",
+    "ground_truth_sha256": "073a3e957efa8ff638ea41402cac9654b40897631d566a3ffee090208597db2a",
+    "ground_truth_usage": "evaluation only; never provided to run_pipeline()",
+    "cropped_duration_s": 30.0,
+    "cropped_imu_csv": "outputs/real/tumvi_room4_short\\cropped\\imu0\\data.csv",
+    "cropped_ground_truth_csv": "outputs/real/tumvi_room4_short\\cropped\\groundtruth.csv"
+  },
+  "configuration": {
+    "prediction_horizon_s": 5.0,
+    "association_tolerance_s": 0.005,
+    "degradation_seed": 42,
+    "drop_prob": 0.03,
+    "burst_prob": 0.001,
+    "degradation_config": {
+      "max_level": 1.0,
+      "gamma": 1.7,
+      "failure_seconds": 5.0
+    },
+    "duration_s": 30.0
+  },
+  "cases": {
+    "clean": {
+      "case": "clean",
+      "input": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\real\\tumvi_room4_short\\cropped\\imu0\\data.csv",
+      "run": {
+        "num_input_samples": 5982,
+        "num_output_samples": 5982,
+        "processing_time_s": 18.86183279985562,
+        "peak_memory_mb": 2.646195411682129,
+        "failure_detected": false,
+        "failure_start_t_ns": null,
+        "prediction_generated": false,
+        "prediction_appended_samples": 0,
+        "median_dt_s": 0.0050160000000000005
+      },
+      "metrics": {
+        "matched_poses": 5978,
+        "estimated_rows": 5982,
+        "groundtruth_rows": 3601,
+        "alignment": {
+          "enabled": true,
+          "R": [
+            [
+              0.5632691922899534,
+              -0.8083048544978528,
+              -0.17137992651483056
+            ],
+            [
+              0.8187520331154192,
+              0.5739263245169479,
+              -0.015927407065630946
+            ],
+            [
+              0.11123365177135425,
+              -0.1313462455560575,
+              0.9850762602417833
+            ]
+          ],
+          "t": [
+            7.139259997817608,
+            12.73911027491889,
+            0.996460622226075
+          ],
+          "scale": 1.0
+        },
+        "overall": {
+          "count": 5978,
+          "ate_rmse_m": 13.372293232349818,
+          "position_rmse_m": 13.372293232349818,
+          "position_mean_m": 11.62085045407894,
+          "position_median_m": 12.063318412398289,
+          "position_max_m": 28.998238822968812,
+          "position_final_m": 28.998238822968812,
+          "orientation_mean_deg": 82.16398888096784,
+          "orientation_median_deg": 79.98143926755355,
+          "orientation_rmse_deg": 83.64708120526086,
+          "orientation_max_deg": 108.9078139934913
+        },
+        "pre_failure": {
+          "count": 4981,
+          "ate_rmse_m": 10.38391240091409,
+          "position_rmse_m": 10.38391240091409,
+          "position_mean_m": 9.373182721938884,
+          "position_median_m": 10.0916295404299,
+          "position_max_m": 17.160678322603292,
+          "position_final_m": 17.160678322603292,
+          "orientation_mean_deg": 77.49876725053191,
+          "orientation_median_deg": 76.61806206819348,
+          "orientation_rmse_deg": 78.55028086276445,
+          "orientation_max_deg": 102.71884785471995
+        },
+        "post_failure": {
+          "count": 997,
+          "ate_rmse_m": 23.097539894320757,
+          "position_rmse_m": 23.097539894320757,
+          "position_mean_m": 22.85017139067837,
+          "position_median_m": 22.733413175088618,
+          "position_max_m": 28.998238822968812,
+          "position_final_m": 28.998238822968812,
+          "orientation_mean_deg": 105.47137999551278,
+          "orientation_median_deg": 105.63950532899841,
+          "orientation_rmse_deg": 105.48438437265399,
+          "orientation_max_deg": 108.9078139934913
+        },
+        "blind_window": {
+          "count": 997,
+          "ate_rmse_m": 23.097539894320757,
+          "position_rmse_m": 23.097539894320757,
+          "position_mean_m": 22.85017139067837,
+          "position_median_m": 22.733413175088618,
+          "position_max_m": 28.998238822968812,
+          "position_final_m": 28.998238822968812,
+          "orientation_mean_deg": 105.47137999551278,
+          "orientation_median_deg": 105.63950532899841,
+          "orientation_rmse_deg": 105.48438437265399,
+          "orientation_max_deg": 108.9078139934913
+        },
+        "ate": {
+          "rmse": 13.372293232349818,
+          "mean": 11.62085045407894,
+          "median": 12.063318412398289,
+          "std": 6.616196869492475,
+          "max": 28.998238822968812,
+          "final": 28.998238822968812
+        },
+        "rpe_delta1": {
+          "rmse": 0.009310003692366897,
+          "mean": 0.008125130932088288,
+          "median": 0.008477905139162405,
+          "std": 0.004545153032440972,
+          "max": 0.01913370985842275,
+          "count": 5977
+        },
+        "rpe_delta10": {
+          "rmse": 0.08881865094473877,
+          "mean": 0.07722791267973458,
+          "median": 0.08378414747806734,
+          "std": 0.04387028902086965,
+          "max": 0.16212659880646632,
+          "count": 5968
+        },
+        "failure_time_s_used": 1520531149.1519885,
+        "blind_horizon_s": 5.0
+      },
+      "summary_files": {
+        "json": "outputs/real/tumvi_room4_short\\clean\\clean_summary.json",
+        "csv": "outputs/real/tumvi_room4_short\\clean\\clean_summary.csv"
+      },
+      "plots": {
+        "trajectory_3d": null,
+        "position_error": null
+      }
+    },
+    "degraded": {
+      "case": "degraded",
+      "input": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\real\\tumvi_room4_short\\degraded_dataset",
+      "run": {
+        "num_input_samples": 5885,
+        "num_output_samples": 5890,
+        "processing_time_s": 11.335002299863845,
+        "peak_memory_mb": 2.447606086730957,
+        "failure_detected": true,
+        "failure_start_t_ns": 1520531149176520567,
+        "prediction_generated": true,
+        "prediction_appended_samples": 5,
+        "median_dt_s": 0.0050160000000000005
+      },
+      "metrics": {
+        "matched_poses": 5886,
+        "estimated_rows": 5890,
+        "groundtruth_rows": 3601,
+        "alignment": {
+          "enabled": true,
+          "R": [
+            [
+              0.4062292634108942,
+              -0.8092699395325579,
+              -0.42433471519263294
+            ],
+            [
+              0.8874379811346055,
+              0.23872426046916334,
+              0.3942899404032359
+            ],
+            [
+              -0.2177880051526683,
+              -0.5367428550362093,
+              0.8151536618203957
+            ]
+          ],
+          "t": [
+            8.661317437675514,
+            13.676663476108644,
+            -1.1055365435470512
+          ],
+          "scale": 1.0
+        },
+        "overall": {
+          "count": 5886,
+          "ate_rmse_m": 15.537794607821594,
+          "position_rmse_m": 15.537794607821594,
+          "position_mean_m": 13.706077618779135,
+          "position_median_m": 13.91079923298448,
+          "position_max_m": 33.2946897520831,
+          "position_final_m": 33.2946897520831,
+          "orientation_mean_deg": 106.99401516413002,
+          "orientation_median_deg": 108.31664988921968,
+          "orientation_rmse_deg": 108.9792072610005,
+          "orientation_max_deg": 162.22760516561925
+        },
+        "pre_failure": {
+          "count": 4878,
+          "ate_rmse_m": 12.072799479729502,
+          "position_rmse_m": 12.072799479729502,
+          "position_mean_m": 11.111966798607524,
+          "position_median_m": 12.097558292410302,
+          "position_max_m": 19.76160047909453,
+          "position_final_m": 19.76160047909453,
+          "orientation_mean_deg": 101.78020862346042,
+          "orientation_median_deg": 101.505506658929,
+          "orientation_rmse_deg": 103.19534933285726,
+          "orientation_max_deg": 140.0603799691091
+        },
+        "post_failure": {
+          "count": 1008,
+          "ate_rmse_m": 26.54054074988856,
+          "position_rmse_m": 26.54054074988856,
+          "position_mean_m": 26.25972105210962,
+          "position_median_m": 26.093292799550987,
+          "position_max_m": 33.2946897520831,
+          "position_final_m": 33.2946897520831,
+          "orientation_mean_deg": 132.22511467344174,
+          "orientation_median_deg": 132.34294282537132,
+          "orientation_rmse_deg": 133.4735123935147,
+          "orientation_max_deg": 162.22760516561925
+        },
+        "blind_window": {
+          "count": 1002,
+          "ate_rmse_m": 26.575648344342675,
+          "position_rmse_m": 26.575648344342675,
+          "position_mean_m": 26.298259778428058,
+          "position_median_m": 26.133452516953888,
+          "position_max_m": 33.2946897520831,
+          "position_final_m": 33.2946897520831,
+          "orientation_mean_deg": 132.20683564374028,
+          "orientation_median_deg": 132.26199758862367,
+          "orientation_rmse_deg": 133.4626252435567,
+          "orientation_max_deg": 162.22760516561925
+        },
+        "ate": {
+          "rmse": 15.537794607821594,
+          "mean": 13.706077618779135,
+          "median": 13.91079923298448,
+          "std": 7.3189136887144235,
+          "max": 33.2946897520831,
+          "final": 33.2946897520831
+        },
+        "rpe_delta1": {
+          "rmse": 0.011598173424035683,
+          "mean": 0.00975986834379096,
+          "median": 0.010397737146035459,
+          "std": 0.0062659872874013,
+          "max": 0.149662456716105,
+          "count": 5885
+        },
+        "rpe_delta10": {
+          "rmse": 0.11047461402828185,
+          "mean": 0.09394547601499097,
+          "median": 0.09907543514056638,
+          "std": 0.058128202114073754,
+          "max": 0.26997020531694577,
+          "count": 5876
+        },
+        "failure_time_s_used": 1520531149.1510367,
+        "blind_horizon_s": 5.0
+      },
+      "summary_files": {
+        "json": "outputs/real/tumvi_room4_short\\degraded\\degraded_summary.json",
+        "csv": "outputs/real/tumvi_room4_short\\degraded\\degraded_summary.csv"
+      },
+      "plots": {
+        "trajectory_3d": null,
+        "position_error": null
+      },
+      "degradation_stats": {
+        "seed": 42,
+        "rows_in": 5982,
+        "rows_out": 5885,
+        "duration_s": 29.998270976,
+        "median_dt_s": 0.005015807999999566,
+        "timestamp_unit": "ns",
+        "accel_unit": "m/s^2",
+        "gyro_unit": "rad/s",
+        "severity_start": 0.02,
+        "severity_end": 1.0,
+        "spikes": 1,
+        "stuck_samples": 38,
+        "dropped_single": 78,
+        "dropped_burst_gaps": 2,
+        "dropped_total": 106,
+        "duplicated_rows": 9,
+        "failure_frames": 997,
+        "final_gyro_bias_rad_s": [
+          -0.00066,
+          7e-05,
+          0.00016
+        ],
+        "final_accel_bias_m_s2": [
+          -0.0376,
+          0.0039,
+          -0.0158
+        ],
+        "config": {
+          "max_level": 1.0,
+          "gamma": 1.7,
+          "floor": 0.02,
+          "protect_seconds": 2.0,
+          "failure_seconds": 5.0,
+          "accel_white_max": 0.2,
+          "gyro_white_max": 0.015,
+          "accel_bias_rw_max": 0.01,
+          "gyro_bias_rw_max": 0.0006,
+          "scale_rw_max": 0.0015,
+          "spike_prob_max": 0.003,
+          "accel_spike_mag": 6.0,
+          "gyro_spike_mag": 1.0,
+          "stuck_prob_max": 0.008,
+          "stuck_len": [
+            2,
+            10
+          ],
+          "drop_prob_max": 0.06,
+          "burst_prob_max": 0.0015,
+          "burst_len": [
+            5,
+            50
+          ],
+          "dup_prob_max": 0.003
+        }
+      },
+      "column_order_check": {
+        "clean_rows": 5982,
+        "degraded_rows": 5885,
+        "degraded_timestamps_present_in_clean_fraction": 1.0,
+        "clean_initial_accel_norm_m_s2": 10.46492758644801,
+        "degraded_initial_accel_norm_m_s2": 10.467652094746414,
+        "degraded_initial_gyro_norm_rad_s": 0.36362473606178114,
+        "note": "EuRoC order is timestamp, gyro(3), accel(3); a swap would show ~9.81 in the gyro norm."
+      },
+      "failure_time_from_degradation_s": 1520531149.1510367
+    },
+    "tier3": {
+      "case": "tier3",
+      "input": "C:\\Users\\abc\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\real\\tumvi_room4_short\\dropout_dataset",
+      "run": {
+        "num_input_samples": 5751,
+        "num_output_samples": 5751,
+        "processing_time_s": 10.764164899941534,
+        "peak_memory_mb": 2.3917036056518555,
+        "failure_detected": false,
+        "failure_start_t_ns": null,
+        "prediction_generated": false,
+        "prediction_appended_samples": 0,
+        "median_dt_s": 0.0050160000000000005
+      },
+      "metrics": {
+        "matched_poses": 5747,
+        "estimated_rows": 5751,
+        "groundtruth_rows": 3601,
+        "alignment": {
+          "enabled": true,
+          "R": [
+            [
+              0.6643596510314987,
+              -0.7461557978394865,
+              0.04333335241849385
+            ],
+            [
+              0.7461511872272014,
+              0.6587547892312767,
+              -0.09643927345378478
+            ],
+            [
+              0.043412669587839584,
+              0.09640359441108177,
+              0.9943951363034117
+            ]
+          ],
+          "t": [
+            7.773915540743484,
+            12.85547332113157,
+            1.1187773128010254
+          ],
+          "scale": 1.0
+        },
+        "overall": {
+          "count": 5747,
+          "ate_rmse_m": 13.675262819753291,
+          "position_rmse_m": 13.675262819753291,
+          "position_mean_m": 11.91038425412112,
+          "position_median_m": 12.420060577340992,
+          "position_max_m": 29.30158053189967,
+          "position_final_m": 29.30158053189967,
+          "orientation_mean_deg": 76.70067835719207,
+          "orientation_median_deg": 72.95139364514753,
+          "orientation_rmse_deg": 78.84855858656468,
+          "orientation_max_deg": 107.96304540355705
+        },
+        "pre_failure": {
+          "count": 4777,
+          "ate_rmse_m": 10.673309202866905,
+          "position_rmse_m": 10.673309202866905,
+          "position_mean_m": 9.629899029356391,
+          "position_median_m": 10.439528405017997,
+          "position_max_m": 17.40846715316947,
+          "position_final_m": 17.40846715316947,
+          "orientation_mean_deg": 71.02039560165521,
+          "orientation_median_deg": 69.36388226657859,
+          "orientation_rmse_deg": 72.48535375094635,
+          "orientation_max_deg": 101.47073950339147
+        },
+        "post_failure": {
+          "count": 970,
+          "ate_rmse_m": 23.387569298069973,
+          "position_rmse_m": 23.387569298069973,
+          "position_mean_m": 23.1411862321635,
+          "position_median_m": 23.036155243790667,
+          "position_max_m": 29.30158053189967,
+          "position_final_m": 29.30158053189967,
+          "orientation_mean_deg": 104.67460693781018,
+          "orientation_median_deg": 104.99172845496024,
+          "orientation_rmse_deg": 104.68747664387138,
+          "orientation_max_deg": 107.96304540355705
+        },
+        "blind_window": {
+          "count": 970,
+          "ate_rmse_m": 23.387569298069973,
+          "position_rmse_m": 23.387569298069973,
+          "position_mean_m": 23.1411862321635,
+          "position_median_m": 23.036155243790667,
+          "position_max_m": 29.30158053189967,
+          "position_final_m": 29.30158053189967,
+          "orientation_mean_deg": 104.67460693781018,
+          "orientation_median_deg": 104.99172845496024,
+          "orientation_rmse_deg": 104.68747664387138,
+          "orientation_max_deg": 107.96304540355705
+        },
+        "ate": {
+          "rmse": 13.675262819753291,
+          "mean": 11.91038425412112,
+          "median": 12.420060577340992,
+          "std": 6.719788695227729,
+          "max": 29.30158053189967,
+          "final": 29.30158053189967
+        },
+        "rpe_delta1": {
+          "rmse": 0.0100999259245803,
+          "mean": 0.008523635663500909,
+          "median": 0.00886706630991821,
+          "std": 0.005418130559326221,
+          "max": 0.1561313056598065,
+          "count": 5746
+        },
+        "rpe_delta10": {
+          "rmse": 0.09358479987031687,
+          "mean": 0.08137030780772471,
+          "median": 0.08775777287692037,
+          "std": 0.046227565088844916,
+          "max": 0.24998054214855603,
+          "count": 5737
+        },
+        "failure_time_s_used": 1520531149.1519885,
+        "blind_horizon_s": 5.0
+      },
+      "summary_files": {
+        "json": "outputs/real/tumvi_room4_short\\tier3\\tier3_summary.json",
+        "csv": "outputs/real/tumvi_room4_short\\tier3\\tier3_summary.csv"
+      },
+      "plots": {
+        "trajectory_3d": null,
+        "position_error": null
+      },
+      "dropout_stats": {
+        "drop_prob": 0.03,
+        "burst_prob": 0.001,
+        "seed": 42,
+        "dropped": 231,
+        "kept": 5751,
+        "n_in": 5982
+      }
+    }
+  }
+}

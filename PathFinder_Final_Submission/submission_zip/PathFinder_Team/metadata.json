@@ -1,0 +1,137 @@
+{
+  "input_dataset": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\degraded_data\\mav0",
+  "resolved_input": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\degraded_data\\mav0\\imu0\\data.csv",
+  "format": "euroc",
+  "num_input_samples": 5914,
+  "num_output_samples": 5914,
+  "processing_time_s": 10.35567349998746,
+  "peak_memory_bytes": 2609125,
+  "peak_memory_mb": 2.488255500793457,
+  "peak_python_memory_bytes": 2609125,
+  "peak_python_memory_mb": 2.488255500793457,
+  "process_rss_bytes": 40271872,
+  "peak_process_rss_bytes": 43892736,
+  "peak_process_rss_mb": 41.859375,
+  "process_memory_source": "windows_psapi",
+  "failure_detection": {
+    "state": "complete_failure",
+    "failure_started": true,
+    "failure_start_index": 4915,
+    "failure_start_t_ns": 1403636604783555392,
+    "dead_samples": 1003,
+    "stuck_samples": 994,
+    "gap_events": 4,
+    "invalid_samples": 0
+  },
+  "failure_detected": true,
+  "failure_start_t_ns": 1403636604783555392,
+  "prediction_horizon_s": 5.0,
+  "prediction_interval_s": 0.005,
+  "prediction_generated": true,
+  "prediction_appended_samples": 0,
+  "prediction_residual_horizon_s_not_appended": 0.024999999999999467,
+  "output_contract_one_pose_per_input_frame": true,
+  "prediction_debug": {
+    "branch": "failure_started",
+    "history_len": 400,
+    "covered_s": 4.9750000000000005,
+    "remaining": 0.024999999999999467,
+    "preds_len": 0,
+    "interval_s": 0.005,
+    "anchor_t_ns": 1403636609758555392,
+    "residual_horizon_s_not_appended": 0.024999999999999467,
+    "reason": "output_contract_one_pose_per_input_frame"
+  },
+  "median_dt_s": 0.005,
+  "validation": {
+    "n_samples": 5914,
+    "ok": false,
+    "issues": [
+      "duplicate timestamps present",
+      "non-positive timestamp intervals present"
+    ]
+  },
+  "preprocessing": {
+    "n_input": 5914,
+    "invalid_value_samples": 0,
+    "exact_zero_rows_preserved": 1003,
+    "gyro_spikes_clipped": 1675,
+    "accel_spikes_clipped": 1003,
+    "stuck_samples_detected": 1023,
+    "bias_estimation": {
+      "window_samples": 201,
+      "finite_samples": 201,
+      "method": "robust_low_motion_fallback",
+      "selected_samples": 67,
+      "gravity_magnitude": 9.811054060061283,
+      "gyro_bias_init": [
+        -1.1e-05,
+        -2e-06,
+        0.2992057383999997
+      ]
+    },
+    "n_output": 5914
+  },
+  "input_meta": {
+    "source_member": "C:\\Users\\ridhi\\OneDrive\\Documents\\Default Project\\PathFinder-IMU-Trajectory\\outputs\\demo\\degraded_data\\mav0\\imu0\\data.csv",
+    "skipped_lines": 0,
+    "malformed_rows": 0,
+    "non_monotonic_timestamps": 0,
+    "duplicate_timestamps": 9,
+    "nonpositive_dt": 9,
+    "invalid_value_rows": 0,
+    "total_lines": 5915,
+    "format": "euroc",
+    "layout_detected": "g_a",
+    "n_samples": 5914,
+    "t_start_ns": 1403636579758555392,
+    "t_end_ns": 1403636609758555392,
+    "duration_s": 30.000000000000004,
+    "dt_median_s": 0.005,
+    "dt_min_s": 0.005,
+    "dt_max_s": 0.060000000000000005
+  },
+  "algorithm_configuration": {
+    "orientation": {
+      "acc_alpha": 0.02,
+      "acc_g_tolerance": 0.35,
+      "use_acc_correction": true
+    },
+    "trajectory": {
+      "gravity_magnitude": 9.811054060061283,
+      "enable_stationary_zupt": true,
+      "velocity_damping": 0.0005
+    },
+    "sensor_correction": {
+      "gyro_bias": [
+        0.017027081469659328,
+        0.007821231193129784,
+        0.30339066148194155
+      ],
+      "accel_bias": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "gyro_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "accel_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "gyro_bias_updates": 732
+    },
+    "failure_detection": {
+      "complete_failure_consecutive": 5,
+      "zero_eps": 0.0
+    },
+    "dead_reckoning": {
+      "use_constant_acceleration": true,
+      "accel_decay_tau_s": 1.5
+    }
+  }
+}
