@@ -26,16 +26,32 @@ See [`ALGORITHM_EXPLANATION.md`](ALGORITHM_EXPLANATION.md) for sensor models, qu
 ```
 PathFinder-IMU-Trajectory/
 ├── src/                    # core modules and CLI (main.py), preserved baseline/utilities
-├── scripts/                # degradation prep, tier1/2/3 evaluation, demo, dataset/evo helpers
-├── tests/                  # unittest suite (synthetic/controlled)
-├── data/{sample,processed,external}/  # local datasets (gitignored)
-├── outputs/                # generated trajectories, metadata, metrics, plots (gitignored)
-├── results/                # evaluation/submission-ready summaries and artifacts
+```
+PathFinder-IMU-Trajectory/
+??? src/                    # core modules and CLI (main.py), preserved baseline/utilities
+??? scripts/                # degradation prep, tier1/2/3 evaluation, demo, dataset/evo/real-data helpers
+??? tests/                  # unittest suite (synthetic/controlled + real-data helpers)
+??? data/{sample,processed,external,real}/  # local datasets (gitignored)
+??? outputs/                # generated trajectories, metadata, metrics, plots (gitignored)
+??? results/                # evaluation/submission-ready summaries and artifacts
+??? evidence/real/          # committed machine-readable real-data summaries
+??? docs/
+??? README.md
+??? ARCHITECTURE.md
+??? ALGORITHM_EXPLANATION.md
+??? EXPERIMENTS.md
+??? REAL_DATA_VALIDATION.md
+??? PROJECT_AUDIT.md
+??? TEAM_FINAL_TASKS.md
+??? requirements.txt
+??? .gitignore
+```
 ├── docs/
 ├── README.md
 ├── ARCHITECTURE.md
 ├── ALGORITHM_EXPLANATION.md
 ├── EXPERIMENTS.md
+├── REAL_DATA_VALIDATION.md
 ├── PROJECT_AUDIT.md
 ├── TEAM_FINAL_TASKS.md
 ├── requirements.txt
@@ -74,6 +90,16 @@ python scripts/download_datasets.py --list
 python scripts/download_datasets.py --euroc MH_01_easy --extract
 ```
 If automatic download fails, follow the official manual instructions printed by the script. Store datasets under `data/external/` (gitignored) or outside the repo. **Do not commit datasets.**
+
+To fetch only the IMU and ground-truth CSVs from a TUM-VI EuroC-export archive (without downloading/keeping camera frames into the dataset folder):
+
+```bash
+python scripts/fetch_tumvi_subset.py --sequence room4 \
+  --tar-cache "$TEMP/dataset-room4_512_16.tar" \
+  --out-dir data/real/tumvi_room4
+```
+
+TUM-VI stores ground truth as `mav0/mocap0/data.csv` (EuRoC uses `mav0/state_groundtruth_estimate0/data.csv`). Ground truth is used only by evaluation scripts.
 
 ### Synthetic data (no external dataset required)
 ```bash
@@ -132,29 +158,39 @@ python scripts/run_demo.py
 Generates clean + degraded synthetic data, runs estimation (including failure/5 s prediction), and writes metrics/plots under `outputs/demo/`.
 
 ## 11. Results (actual measured metrics only)
-Measurements below are from **synthetic/demo runs** in the development environment (Python 3.14, Windows). **Real EuRoC/TUM-VI validation is pending** (datasets not bundled). See [`EXPERIMENTS.md`](EXPERIMENTS.md) for full details.
+Measurements below include **synthetic/demo runs** and a **real TUM-VI `room4` validation** (Python 3.14.6, Windows). Full commands, provenance, hashes, metrics and interpretation are in [`EXPERIMENTS.md`](EXPERIMENTS.md) and [`REAL_DATA_VALIDATION.md`](REAL_DATA_VALIDATION.md).
 
+### Synthetic/demo (30 s)
 | Case | Samples (in/out) | Time (s) | Peak mem MB (tracemalloc) | Failure detected | 5 s prediction | ATE RMSE (m, aligned) | Blind/post-failure RMSE (m) |
 |---|---:|---:|---:|:---:|:---:|---:|---:|
 | Clean synthetic (30 s, 200 Hz) | 6001 / 6001 | 10.120 | 3.030 | No | No | 4.679 | 4.558* |
 | Degraded + terminal failure | 5914 / 5919 | 8.542 | 2.488 | Yes | Yes (5 appended) | 5.130 | 2.224 |
 | Tier 3 dropout resilience (289 dropped / 6001) | 5712 / 5712 | 17.348 | 2.547 | No | No | 4.686 | 4.571* |
 
-\*Heuristic blind window in no-failure cases; see `EXPERIMENTS.md` for context. Absolute IMU-only errors depend on observability, alignment, and motion; metrics are reported as measured.
+### Real TUM-VI `room4` (first 30 s)
+| Case | Samples (in/out) | Time (s) | Peak mem MB (tracemalloc) | Failure detected | 5 s prediction | ATE RMSE (m, aligned) | Blind/post-failure RMSE (m) |
+|---|---:|---:|---:|:---:|:---:|---:|---:|
+| Clean IMU | 5982 / 5982 | 18.86 | 2.65 | No | No | 13.37 | 23.10* |
+| Degraded + terminal failure | 5885 / 5890 | 11.34 | 2.45 | Yes | Yes (5 residual appended) | 15.54 | 26.54 |
+| Tier 3 dropout resilience | 5751 / 5751 | 10.76 | 2.39 | No | No | 13.68 | 23.39* |
 
-**Resource targets:** measured throughput is ~280–480 ms per 1 s IMU (above 20 ms target). Fresh synthetic degraded demo (this environment): 8.542 s for 30 s IMU, `tracemalloc` peak 2.488 MB, **peak process RSS 41.55 MB** (`windows_psapi`). Compliance with 8 MB peak RAM / 20 ms per 1 s IMU is **not claimed**.
+Full-recording results (111 s, re-verified on `data/real/tumvi_room4_run2`) are also recorded in collaborator evidence: ATE RMSE 98.46 m (clean), 97.38 m (degraded) and 115.08 m (dropouts); RPE ?1 0.0248 / 0.0261 / 0.0302 m; pipeline processing 52.82 / 50.19 / 49.71 s; peak `tracemalloc` 8.85?9.43 MB. See [`REAL_DATA_VALIDATION.md`](REAL_DATA_VALIDATION.md).
+
+**Resource targets:** measured throughput is ~280?480 ms per 1 s IMU on demo runs and 446?516 ms per 1 s IMU on real runs (above the 20 ms target). Fresh synthetic degraded demo (this environment): 8.542 s for 30 s IMU, `tracemalloc` peak 2.488 MB, **peak process RSS 41.55 MB** (`windows_psapi`). Real-run peak process RSS was 104.93?106.27 MB (collaborator, separately sampled). `tracemalloc` counts Python allocations only; RSS includes interpreter and native libraries. Compliance with 8 MB peak RAM / 20 ms per 1 s IMU is **not met**.
 
 ## 12. Known limitations
 - IMU-only integration is drift-prone; absolute position and yaw are not fully observable without aiding sensors.
 - Bias/scale errors under severe degradation are only partially compensable; dead-reckoning accuracy degrades over the 5 s horizon and cannot anticipate unobserved maneuvers.
 - Current Python modular pipeline does not meet the 20 ms per 1 s IMU throughput target in measured runs (see `EXPERIMENTS.md`).
-- Real-dataset (EuRoC/TUM-VI) performance and process-level memory compliance require independent validation (pending).
+- Real validation currently covers one TUM-VI `room4` recording; additional EuRoC/TUM-VI sequences and process-level memory compliance remain to be verified.
 
 ## 13. Team contribution section
 - **Lead (current implementation):** repository audit, modular pipeline implementation/integration, degradation workflow integration, evaluation/tier/demo scripts, automated tests, and documentation with measured synthetic/demo results.
+- **Collaborator (real-dataset validation):** TUM-VI subset fetch helper, real-sequence validation workflow, column-order/timestamp audit, and measured clean/degraded/dropout results on `room4`; see [`REAL_DATA_VALIDATION.md`](REAL_DATA_VALIDATION.md).
 - **Reserved final verification (10%, not claimed complete):** see [`TEAM_FINAL_TASKS.md`](TEAM_FINAL_TASKS.md) for Team Member 1 (preprocessing/timestamps on real EuRoC), Team Member 2 (orientation/gravity/frames review), and Team Member 3 (ATE/RPE, dropout resilience, 5 s prediction evaluation) with required evidence.
 
 ## Additional references
 - [`PROJECT_AUDIT.md`](PROJECT_AUDIT.md) — initial audit, gaps, risks, and priorities
 - [`EXPERIMENTS.md`](EXPERIMENTS.md) — detailed measured results and commands
+- [`REAL_DATA_VALIDATION.md`](REAL_DATA_VALIDATION.md) — real TUM-VI `room4` protocol, provenance and results
 - [`scripts/`](scripts/) — reproducible workflows
