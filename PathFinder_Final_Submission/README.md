@@ -6,11 +6,11 @@ Final submission package for **Samsung PRISM XR Hackathon 2026 ? Track 03: Path 
 ```text
 PathFinder_Final_Submission/
   presentation/
-    PathFinder_Team_Submission.pptx
-    PathFinder_Team_Submission.pdf
+    Final_Presentation.pptx
+    Final_Presentation.pdf
   submission_zip/
-    PathFinder_Team.zip                  # Official Track 03 ZIP
-    PathFinder_Team/                      # Extracted bundle (same content)
+    Error_404_Not_Found.zip                  # Official Track 03 ZIP
+    Error_404_Not_Found/                      # Extracted bundle (same content)
   documentation/
     README.md                             # Repo/project README snapshot
     AI_DISCLOSURE.md
@@ -31,11 +31,11 @@ PathFinder_Final_Submission/
 - **Runtime NOT MET:** ~285 ms/s IMU vs 20 ms/s target (independently verified demo); 446?516 ms/s collaborator real run.
 - **Process RAM NOT MET:** ~41.86 MB process RSS vs 8 MB target (demo); 104.93?106.27 MB collaborator real. `tracemalloc` is Python allocations only, not process RSS.
 - **Real TUM-VI results:** collaborator-reported evidence, not independently rerun in this workspace.
-- **No fabrication:** no invented team identity/personal info, no video recorded/uploaded, no Google Form submitted.
+- **No fabrication:** no invented team identity/personal info, no live demo fabricated, no Google Form submitted. Video is narrated slide-based (not live software demo).
 
 ## Official Track 03 ZIP
-`submission_zip/PathFinder_Team.zip` contains the required structure:
-`PathFinder_Team/{estimated_trajectory.txt, metadata.json, src/main.py, src/*required modules*, src/README.md}`.  
+`submission_zip/Error_404_Not_Found.zip` contains the required structure:
+`Error_404_Not_Found/{estimated_trajectory.txt, metadata.json, src/main.py, src/*required modules*, src/README.md}`.  
 ZIP integrity verified (`testzip()` None) and clean extraction verified.
 
 ## Reproducibility

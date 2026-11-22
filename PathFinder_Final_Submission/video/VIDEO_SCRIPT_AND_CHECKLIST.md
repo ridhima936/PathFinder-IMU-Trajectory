@@ -27,7 +27,7 @@ Optional (if dataset available, clearly label): run real-data validation script;
 
 ### 0:00?0:20 ? Title & problem
 **On screen:** README title / slide 1.  
-**Narration:** "Hi, we are PathFinder_Team. This is PathFinder for Samsung PRISM XR Hackathon 2026, Track 03: Trajectory Estimation Under Sensor Degradation. The task is to reconstruct 6-DoF IMU trajectory under degradation, detect complete sensor failure, and predict 5 seconds of future motion. The solution must be standalone Python, offline, single-threaded, with no GPS, camera, or future ground truth in inference."
+**Narration:** "Hi, we are Error 404 Not Found. This is PathFinder for Samsung PRISM XR Hackathon 2026, Track 03: Trajectory Estimation Under Sensor Degradation. The task is to reconstruct 6-DoF IMU trajectory under degradation, detect complete sensor failure, and predict 5 seconds of future motion. The solution must be standalone Python, offline, single-threaded, with no GPS, camera, or future ground truth in inference."
 
 ### 0:20?0:45 ? Architecture
 **On screen:** `ARCHITECTURE.md` or architecture slide.  

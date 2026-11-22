@@ -3,7 +3,7 @@
 ## Project
 - **Project:** PathFinder ? IMU Trajectory Estimation Under Sensor Degradation
 - **Track:** Samsung PRISM XR Hackathon 2026, Track 03
-- **Team:** PathFinder_Team (confirm official registered team name)
+- **Team:** Error 404 Not Found (confirm official registered team name)
 - **Repository:** https://github.com/ridhima936/PathFinder-IMU-Trajectory
 
 ## Honest disclosure of AI assistance

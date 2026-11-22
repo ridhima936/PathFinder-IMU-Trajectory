@@ -2,14 +2,14 @@
 
 **Form:** https://forms.gle/YtxP2aDwZcEtqu8QA  
 **Status:** DRAFT ONLY. **Do not submit without explicit user review/approval.**  
-**Agent has not submitted this form and has not uploaded a video.**
+**Agent has not submitted this form. Video file was generated locally; manual upload to YouTube/Drive is still required.**
 
 Fill all `[CONFIRM: ...]` / `[MANUAL UPLOAD]` / `[USER-PROVIDED]` fields before submission. Do not invent personal/team identity details.
 
 ## A) Team / identity fields (user-provided)
 | Field | Draft value |
 |---|---|
-| Team name | `PathFinder_Team` [CONFIRM: replace with official registered team name if different] |
+| Team name | `Error 404 Not Found` [CONFIRM: replace with official registered team name if different] |
 | College / Organization | [USER-PROVIDED: COLLEGE_NAME] |
 | Theme / Track | `Track 03 ? Path Finder: Trajectory Estimation Under Sensor Degradation` |
 | Project title | `PathFinder ? Trajectory Estimation Under Sensor Degradation` |
@@ -58,10 +58,10 @@ PathFinder is a modular offline IMU-only Python pipeline: IMU reader/adapter (Eu
 |---|---|---|
 | GitHub link | https://github.com/ridhima936/PathFinder-IMU-Trajectory | VERIFIED |
 | Main commit / branch | `main` @ `1cea58f` (integration `5ad871f`, feature fix `50f67f1`) | VERIFIED |
-| Submission package / ZIP | `PathFinder_Final_Submission/submission_zip/PathFinder_Team.zip` | READY (confirm official team name before upload) |
-| Source code | Included in repo and ZIP (`PathFinder_Team/src/`, full source in `PathFinder_Final_Submission/documentation/source_snapshot/`) | VERIFIED |
-| Presentation (PPT/PDF) | `PathFinder_Final_Submission/presentation/PathFinder_Team_Submission.pptx` and `.pdf` | DRAFT - replace college/member placeholders |
-| Video (2?3 min) | [MANUAL UPLOAD REQUIRED] Use `PathFinder_Final_Submission/video/VIDEO_SCRIPT_AND_CHECKLIST.md`; paste final YouTube/Drive link here | NOT RECORDED/UPLOADED |
+| Submission package / ZIP | `PathFinder_Final_Submission/submission_zip/Error_404_Not_Found.zip` | READY (confirm official team name before upload) |
+| Source code | Included in repo and ZIP (`Error_404_Not_Found/src/`, full source in `PathFinder_Final_Submission/documentation/source_snapshot/`) | VERIFIED |
+| Presentation (PPT/PDF) | `PathFinder_Final_Submission/presentation/Final_Presentation.pptx` and `.pdf` | DRAFT - replace college/member placeholders |
+| Video (2?3 min) | `PathFinder_Final_Submission/video/PathFinder_Final_Presentation.mp4` (narrated slide-based video; ~3:37). Upload to YouTube/Drive and paste accessible link. | GENERATED - MANUAL UPLOAD REQUIRED |
 | AI disclosure | `PathFinder_Final_Submission/documentation/AI_DISCLOSURE.md` | COMPLETE |
 | README | `README.md` in repo; also `PathFinder_Final_Submission/documentation/docs/README.md` and `PathFinder_Final_Submission/README.md` | VERIFIED |
 | APK / SDK | N/A ? Track 03 standalone Python submission (no Android APK/SDK deliverable in this package) | N/A |
